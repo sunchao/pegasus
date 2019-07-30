@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.uber.pegasus</groupId>
+    <version>0.1.0-SNAPSHOT</version>
+    <artifactId>pegasus-root</artifactId>
+    <packaging>pom</packaging>
+    <name>Pegasus</name>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <hadoop.version>2.8.2</hadoop.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>uber-internal-releases</id>
+            <url>http://artifactory.uber.internal:4587/artifactory/libs-release-local/</url>
+        </repository>
+        <repository>
+            <id>uber-external-releases</id>
+            <url>http://artifactory.uber.internal:4587/artifactory/ext-release-local/</url>
+        </repository>
+        <repository>
+            <id>uber-internal-snapshots</id>
+            <url>http://artifactory.uber.internal:4587/artifactory/libs-snapshot-local/</url>
+        </repository>
+    </repositories>
+
+    <modules>
+        <module>pegasus-master</module>
+        <module>pegasus-worker</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.uber.pegasus</groupId>
+                <artifactId>pegasus-master</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.uber.pegasus</groupId>
+                <artifactId>pegasus-worker</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-hdfs</artifactId>
+                <version>${hadoop.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.6.1</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>
