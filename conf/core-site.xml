@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://ns-neon-prod-dca1</value>
+  </property>
+
+  <!-- Security -->
+  <property>
+    <name>hadoop.security.authentication</name>
+    <value>simple</value>
+  </property>
+  <property>
+    <name>hadoop.security.authorization</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>hadoop.security.auth_to_local</name>
+    <value>
+       RULE:[1:$1@$0](.*@CORP.UBER.COM)s/@.*//
+       RULE:[2:$1@$0](.*@CORP.UBER.COM)s/@.*//
+       RULE:[2:$1/$2@$0](.*/hdfs@DATASRE.PROD.UBER.INTERNAL)s/.*/hdfs/
+       RULE:[2:$1/$2@$0](.*/yarn@DATASRE.PROD.UBER.INTERNAL)s/.*/yarn/
+       RULE:[1:$1@$0](.*@DATASRE.PROD.UBER.INTERNAL)s/@.*//
+       RULE:[2:$1@$0](.*@DATASRE.PROD.UBER.INTERNAL)s/@.*//
+       DEFAULT
+    </value>
+  </property>
+  <property>
+    <name>hadoop.security.groups.cache.secs</name>
+    <value>1800</value>
+  </property>
+
+
+  <property>
+    <name>hadoop.rpc.protection</name>
+    <value>authentication</value>
+  </property>
+  <property>
+    <name>hadoop.ssl.enabled</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>hadoop.ssl.require.client.cert</name>
+    <value>false</value>
+    <final>true</final>
+  </property>
+  <property>
+    <name>hadoop.ssl.keystores.factory.class</name>
+    <value>org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory</value>
+    <final>true</final>
+  </property>
+  <property>
+    <name>io.compression.codecs</name>
+    <value>org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.BZip2Codec,org.apache.hadoop.io.compress.DeflateCodec,org.apache.hadoop.io.compress.SnappyCodec,org.apache.hadoop.io.compress.Lz4Codec</value>
+  </property>
+  <property>
+    <name>hadoop.ssl.server.conf</name>
+    <value>ssl-server.xml</value>
+    <final>true</final>
+  </property>
+  <property>
+    <name>hadoop.ssl.client.conf</name>
+    <value>ssl-client.xml</value>
+    <final>true</final>
+  </property>
+
+  <!-- Proxy users -->
+  <property>
+    <name>hadoop.proxyuser.oozie.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.oozie.groups</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.hive.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.hive.groups</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.knox.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.knox.groups</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.presto.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.presto.groups</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.janus.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.janus.groups</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.piper.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.piper.groups</name>
+    <value>*</value>
+  </property>
+  <!-- T801831 Allow user uaccess to impersonate -->
+  <property>
+    <name>hadoop.proxyuser.uaccess.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.uaccess.groups</name>
+    <value>*</value>
+  </property>
+  <!-- T1242213 Allow user svc-livy to impersonate -->
+  <property>
+    <name>hadoop.proxyuser.svc-livy.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.svc-livy.groups</name>
+    <value>*</value>
+  </property>
+  <!-- T1387925 Allow user reair to impersonate -->
+  <property>
+    <name>hadoop.proxyuser.reair.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.reair.groups</name>
+    <value>*</value>
+  </property>
+  <!-- T2589043 Allow user svc-udestiny to impersonate -->
+  <property>
+    <name>hadoop.proxyuser.svc-udestiny.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.svc-udestiny.groups</name>
+    <value>*</value>
+  </property>
+
+  <!-- HTTP web-consoles Authentication -->
+  <property>
+    <name>hadoop.http.filter.initializers</name>
+    <value>org.apache.hadoop.security.AuthenticationFilterInitializer</value>
+  </property>
+  <property>
+    <name>hadoop.http.authentication.type</name>
+    <value>simple</value>
+  </property>
+  <property>
+    <name>hadoop.http.authentication.signature.secret.file</name>
+    <value>/opt/hadoop/hdfs_latest/conf/etc/hadoop/http-auth-signature-secret</value>
+  </property>
+  <property>
+    <name>hadoop.http.authentication.kerberos.keytab</name>
+    <value>/opt/hadoop/keytabs/${user.name}.keytab</value>
+  </property>
+  <property>
+    <name>hadoop.http.authentication.kerberos.principal</name>
+    <value>HTTP/_HOST@DATASRE.PROD.UBER.INTERNAL</value>
+  </property>
+  <property>
+    <name>hadoop.security.group.mapping</name>
+    <value>org.apache.hadoop.security.ShellBasedUnixGroupsMapping</value>
+  </property>
+  <property>
+    <name>hadoop.security.instrumentation.requires.admin</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>hadoop.http.logs.enabled</name>
+    <value>true</value>
+  </property>
+
+  <!-- Allow access non-secure cluster from secure cluster -->
+  <property>
+    <name>ipc.client.fallback-to-simple-auth-allowed</name>
+    <value>true</value>
+  </property>
+
+  <!-- T2176883 -->
+  <property>
+    <name>ipc.server.listen.queue.size</name>
+    <value>1024</value>
+  </property>
+
+  <!-- Topology script -->
+  <property>
+    <name>net.topology.script.file.name</name>
+    <value>/opt/hadoop/topology.py</value>
+  </property>
+
+  <property>
+    <name>fs.trash.interval</name>
+    <value>1440</value>
+  </property>
+  <property>
+    <name>fs.trash.checkpoint.interval</name>
+    <value>60</value>
+  </property>
+  <property>
+    <name>hadoop.security.groups.cache.secs</name>
+    <value>3000</value>
+  </property>
+  <property>
+    <name>hadoop.security.groups.negative-cache.secs</name>
+    <value>3000</value>
+  </property>
+
+  <!-- T797929 Enable FairCallQueue -->
+  <property>
+    <name>ipc.8020.backoff.enable</name>
+    <value>true</value>
+  </property>
+  <!--
+  <property>
+    <name>ipc.8020.callqueue.impl</name>
+    <value>org.apache.hadoop.ipc.FairCallQueue</value>
+  </property>
+  <property>
+    <name>ipc.8020.faircallqueue.priority-levels</name>
+    <value>10</value>
+  </property>
+  -->
+
+  <!-- T774322 Increase new-active timeout to 300 seconds -->
+  <property>
+    <name>ha.failover-controller.new-active.rpc-timeout.ms</name>
+    <value>300000</value>
+  </property>
+
+  <!-- T765379 Increase HA health monitor timeout -->
+  <property>
+    <name>ha.health-monitor.rpc-timeout.ms</name>
+    <value>900000</value>
+  </property>
+
+</configuration>

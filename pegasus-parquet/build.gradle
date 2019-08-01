@@ -1,0 +1,10 @@
+description = 'Pegasus Parquet'
+
+dependencies {
+    implementation project(':pegasus-api')
+
+    // Apache Parquet
+    implementation "org.apache.parquet:parquet-column:${parquetVersion}"
+    implementation "org.apache.parquet:parquet-encoding:${parquetVersion}"
+    implementation "org.apache.parquet:parquet-common:${parquetVersion}"
+}

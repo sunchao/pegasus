@@ -1,0 +1,17 @@
+description = 'Pegasus Master'
+
+def hiveVersion = "2.3.4"
+
+dependencies {
+    implementation project(':pegasus-api')
+    implementation("org.apache.hive:hive-service:${hiveVersion}") {
+        exclude group: 'org.apache.hive', module: 'hive-llap-server'
+        exclude group: 'org.apache.hive', module: 'hive-llap-client'
+        exclude group: 'org.apache.hive', module: 'hive-llap-tez'
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-1.2-api'
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+        exclude group: 'ch.qos.logback', module: 'logback-core'
+        exclude group: 'com.google.guava', module: 'guava'
+    }
+}

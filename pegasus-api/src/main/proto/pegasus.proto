@@ -1,0 +1,192 @@
+syntax = "proto3";
+
+package com.uber.pegasus.proto;
+
+enum TypeId {
+  // Boolean type: true or false
+  BOOLEAN = 0;
+  // 1-byte (signed) integer
+  TINYINT = 1;
+  // 2-byte (signed) integer
+  SMALLINT = 2;
+  // 4-byte (signed) integer
+  INT = 3;
+  // 8-byte (signed) integer
+  BIGINT = 4;
+  // IEEE floating point number
+  FLOAT = 5;
+  // IEEE double precision float point number
+  DOUBLE = 6;
+  // Variable length byte array
+  STRING = 7;
+  // Fixed length byte array
+  CHAR = 8;
+  // Fixed point decimal value
+  DECIMAL = 9;
+  // Exact timestamp encoded with int64 since UNIX epoch
+  TIMESTAMP = 10;
+}
+
+// Type specification, containing the type ID enum as well as any
+// additional parameters the type may need.
+message Type {
+  // The ID for this type
+  TypeId id = 1;
+
+  // Only set if id == DECIMAL
+  int32 precision = 2;
+  int32 scale = 3;
+
+  // Only set if id == CHAR
+  int32 len = 4;
+}
+
+// Description for a column metadata
+message ColumnDesc {
+  Type type = 1;
+  string name = 2;
+}
+
+// Representation of schema for data sources supported by Pegasus
+message Schema {
+  repeated ColumnDesc cols = 1;
+}
+
+// Serialized columnar data, in Arrow format. Each column is a contiguous
+// byte buffer.
+message ColumnData {
+  // The null bits (0 indicate null, 1 indicate non-null)
+  bytes is_null = 1;
+
+  // The serialized data in Arrow format
+  bytes data = 2;
+}
+
+message GetVersionResponse {
+  string version = 1;
+}
+
+// A structured plan request
+message StructuredRequest {
+  message ColumnHandle {
+    // The name for the column
+    string name = 1;
+
+    // TODO: predicates, aggregations, expressions, etc.
+  }
+
+  // The name for the table to be scanned
+  string table_name = 1;
+
+  // A list of columns to be scanned from the table
+  repeated ColumnHandle columns = 2;
+}
+
+// Type of planning request - currently only a structured request.
+enum RequestType {
+  // Request with a list of columns associated with associated information
+  STRUCTURE = 0;
+  // Request specified in the format of an arbitrafy SQL statement, e.g.,
+  // "SELECT c1, c2 FROM table WHERE c3 > 100"
+  // SQL = 2;
+  // Request in the form of a path URL, e.g., "hdfs:///user/foo/directory"
+  // PATH = 3;
+}
+
+// Request send to Pegasus master for reading data from a particular source.
+message PlanRequest {
+  RequestType req_type = 1;
+
+  // Structured request - only set if `req_type` == `STRUCTURE`
+  StructuredRequest structured_req = 2;
+}
+
+message PlanResponse {
+  repeated Task tasks = 1;
+  Schema schema = 2;
+  int64 request_id = 3;
+}
+
+
+message GetSchemaResponse {
+  Schema schema = 1;
+}
+
+// Network address specifying the host machine, used to schedule where tasks should run
+message NetworkAddress {
+  string hostname = 1;
+  int32 port = 2;
+}
+
+// A scan task for a Pegasus worker to execute
+message Task {
+  repeated NetworkAddress local_hosts = 1;
+
+  // A opaque blob produced by Pegasus master and passed to Pegasus worker
+  bytes task = 2;
+}
+
+
+message ExecTaskRequest {
+  // This is produced by Pegasus master and must be passed to the worker unmodified
+  bytes task = 1;
+
+  // Maximum number of records that can be returned per fetch. The server can return
+  // fewer. If unset, use service default.
+  int32 fetch_size = 2;
+
+  // The memory limit for the task in bytes. If unset, the service manages it on its own.
+  int64 mem_limit = 3;
+
+  // The maximum number of records to return for this task
+  int64 limit = 4;
+}
+
+message ExecTaskResponse {
+  // A unique ID used to fetch result from the Pegasus worker
+  int64 handle = 1;
+
+  // Schema of the records returned by the `Fetch` API
+  Schema schema = 2;
+}
+
+message FetchRequest {
+  int64 handle = 1;
+}
+
+message FetchResponse {
+  // If true, all records for this task have been returned. It is still valid to
+  // continue fetching from worker, but it will return 0 records.
+  bool done = 1;
+
+  // The approximate completion progress [0, 1]
+  double task_progress = 2;
+
+  // The number of records in this batch
+  int32 num_records = 3;
+}
+
+message Empty {}
+
+service PegasusMasterService {
+    // Get the current version for the Pegasus master service. This should be the protocol version.
+  rpc GetVersion(Empty) returns (GetVersionResponse) {}
+
+  // Plan a scan request.
+  // TODO: consider making this a streaming operation as well, it could be useful to build a pipeline
+  // for scanning like in Presto.
+  rpc Plan(PlanRequest) returns (PlanResponse) {}
+
+  // Get the schema for the given plan request.
+  rpc GetSchema(PlanRequest) returns (GetSchemaResponse) {}
+}
+
+service PegasusWorker {
+  // Exec a scan task and return the response. This must be called before a `Fetch` request.
+  rpc ExecTask(ExecTaskRequest) returns (ExecTaskResponse) {}
+
+  // Fetch scanned batches from the worker. This may be called multiple times until the scanned
+  // data is depleted.
+  // TODO: explore the streaming API from gRpc
+ rpc Fetch(FetchRequest) returns (FetchResponse) {}
+}

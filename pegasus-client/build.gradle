@@ -1,0 +1,5 @@
+description = 'Pegasus Client'
+
+dependencies {
+    implementation project(':pegasus-api')
+}

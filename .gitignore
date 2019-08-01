@@ -14,4 +14,8 @@
 .classpath
 .project
 .settings
+build
 target
+.gradle
+gradlew.bat
+gradle/wrapper/gradle-wrapper.properties

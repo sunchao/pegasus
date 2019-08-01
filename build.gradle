@@ -1,0 +1,84 @@
+plugins {
+    id 'java'
+    id 'com.google.protobuf' version '0.8.8'
+    id 'idea'
+    id 'distribution'
+}
+
+allprojects {
+    apply plugin: "java"
+    apply plugin: 'com.google.protobuf'
+    apply plugin: "idea"
+    apply plugin: 'project-report'
+    apply plugin: 'distribution'
+
+    ext {
+        grpcVersion = "1.22.1"
+        protobufVersion = "3.9.0"
+        protocVersion = protobufVersion
+        arrowVersion = "0.14.1"
+        parquetVersion = "1.10.1"
+        hiveVersion = "2.3.4"
+        log4jVersion = "2.12.0"
+        hadoopVersion = "2.8.2"
+        jacksonVersion = "2.9.8"
+    }
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    group = 'com.uber.pegasus'
+    version = '0.1.0-SNAPSHOT'
+
+    repositories {
+        maven { url "https://maven-central.storage-download.googleapis.com/repos/central/data/" }
+        mavenLocal()
+        maven { url = 'http://artifactory.uber.internal:4587/artifactory/libs-release-local/' }
+        maven { url = 'http://artifactory.uber.internal:4587/artifactory/libs-snapshot-local/' }
+        maven { url = 'http://artifactory.uber.internal:4587/artifactory/ext-release-local/' }
+    }
+
+    dependencies {
+        implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+        implementation "io.grpc:grpc-stub:${grpcVersion}"
+        implementation "io.grpc:grpc-netty:${grpcVersion}"
+        runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}" // TODO: is this needed?
+        compileOnly "com.google.protobuf:protobuf-java:${protobufVersion}" // TODO: what is this for?
+        compileOnly "javax.annotation:javax.annotation-api:1.2" // TODO: what is this for?
+    }
+
+    distributions {
+        main {
+            baseName = project.name + "-assembly"
+            contents {
+                into('lib/') {
+                    from jar
+                    from configurations.runtimeClasspath
+                    dirMode = 0755
+                    fileMode = 0644
+                }
+            }
+        }
+    }
+}
+
+subprojects {
+    dependencies {
+        implementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+        implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+        implementation("org.apache.hadoop:hadoop-hdfs:${hadoopVersion}") {
+            exclude group: 'org.apache.logging.log4j', module: 'log4j-1.2-api'
+            exclude group: 'com.google.guava', module: 'guava'
+        }
+        // For parsing YAML files
+        implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}"
+        implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+
+        // Apache Arrow
+        implementation "org.apache.arrow:arrow-vector:${arrowVersion}"
+        implementation "org.apache.arrow:arrow-memory:${arrowVersion}"
+
+    }
+}
+
+

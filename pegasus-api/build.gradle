@@ -1,0 +1,23 @@
+apply plugin: 'com.google.protobuf'
+
+description = "Pegasus API"
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+
+// Inform IDEs like IntelliJ IDEA, Eclipse or NetBeans about the generated code.
+sourceSets {
+    main {
+        java {
+            srcDirs "${projectDir}/build/generated/source/proto/main/grpc"
+            srcDirs "${projectDir}/build/generated/source/proto/main/java"
+        }
+    }
+}
