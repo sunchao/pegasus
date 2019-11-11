@@ -69,7 +69,9 @@ subprojects {
         implementation("org.apache.hadoop:hadoop-hdfs:${hadoopVersion}") {
             exclude group: 'org.apache.logging.log4j', module: 'log4j-1.2-api'
             exclude group: 'com.google.guava', module: 'guava'
+            exclude group: 'io.netty', module: 'netty-all'
         }
+
         // For parsing YAML files
         implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}"
         implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
@@ -78,6 +80,7 @@ subprojects {
         implementation "org.apache.arrow:arrow-vector:${arrowVersion}"
         implementation "org.apache.arrow:arrow-memory:${arrowVersion}"
 
+        testCompile "junit:junit:4.12"
     }
 }
 

@@ -94,7 +94,7 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
 
   private void init(int bitWidth) {
     Preconditions.checkArgument(bitWidth >= 0 && bitWidth <= 32,
-        "bitWidth must be >= 0 and <= 32");
+        "bitWidth must be >= 0 and <= 32, but found " + bitWidth);
     this.bitWidth = bitWidth;
     this.bytesWidth = BytesUtils.paddedByteCountFromBits(bitWidth);
     this.packer = Packer.LITTLE_ENDIAN.newBytePacker(bitWidth);

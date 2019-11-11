@@ -13,5 +13,7 @@ dependencies {
         exclude group: 'ch.qos.logback', module: 'logback-classic'
         exclude group: 'ch.qos.logback', module: 'logback-core'
         exclude group: 'com.google.guava', module: 'guava'
+
+        exclude group: 'io.netty', module: 'netty-all'
     }
 }
