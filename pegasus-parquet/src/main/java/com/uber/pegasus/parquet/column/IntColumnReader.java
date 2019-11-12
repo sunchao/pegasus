@@ -1,5 +1,6 @@
 package com.uber.pegasus.parquet.column;
 
+import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.IntVector;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.page.PageReader;
@@ -8,9 +9,12 @@ import org.apache.parquet.schema.OriginalType;
 import java.io.IOException;
 
 public class IntColumnReader extends AbstractColumnReader<IntVector> {
-  public IntColumnReader(ColumnDescriptor desc, OriginalType originalType,
-      PageReader pageReader) throws IOException {
-    super(desc, originalType, pageReader);
+  public IntColumnReader(
+      ColumnDescriptor desc,
+      OriginalType originalType,
+      PageReader pageReader,
+      BufferAllocator allocator) throws IOException {
+    super(desc, originalType, pageReader, allocator);
   }
 
   @Override

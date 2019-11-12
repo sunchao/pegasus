@@ -1,7 +1,6 @@
 package com.uber.pegasus.parquet.value;
 
-import com.uber.pegasus.parquet.LevelsReader;
-
+import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.ValueVector;
 import org.apache.parquet.Preconditions;
 import org.apache.parquet.bytes.ByteBufferInputStream;
@@ -14,7 +13,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public abstract class AbstractRleValuesReader<V extends ValueVector>
-    extends ValuesReader<V> implements LevelsReader<V> {
+    extends ValuesReader<V> {
   /**
    * Encoding mode
    */
@@ -24,6 +23,7 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
   }
 
   private ByteBufferInputStream in;
+  protected final BufferAllocator allocator;
 
   // bit/byte width of decoded data and utility to batch unpack them
   private int bitWidth;
@@ -45,20 +45,24 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
   private final boolean fixedWidth;
   private final boolean readLength;
 
-  public AbstractRleValuesReader() {
+  public AbstractRleValuesReader(BufferAllocator allocator) {
     this.fixedWidth = false;
     this.readLength = false;
+    this.allocator = allocator;
   }
 
-  public AbstractRleValuesReader(int bitWidth) {
+  public AbstractRleValuesReader(BufferAllocator allocator, int bitWidth) {
     this.fixedWidth = true;
     this.readLength = bitWidth != 0;
+    this.allocator = allocator;
     init(bitWidth);
   }
 
-  public AbstractRleValuesReader(int bitWidth, boolean readLength) {
+  public AbstractRleValuesReader(BufferAllocator allocator, int bitWidth,
+      boolean readLength) {
     this.fixedWidth = true;
     this.readLength = readLength;
+    this.allocator = allocator;
     init(bitWidth);
   }
 
@@ -91,6 +95,14 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
   public void skip() {
     throw new UnsupportedOperationException();
   }
+
+  /**
+   * Put a single value into vector `v` at offset `idx`.
+   *
+   * @param v the value vector to fill value in
+   * @param idx the offset to put the value in the vector
+   */
+  // abstract protected void setValue(V v, int idx);
 
   private void init(int bitWidth) {
     Preconditions.checkArgument(bitWidth >= 0 && bitWidth <= 32,

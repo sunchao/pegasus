@@ -1,5 +1,6 @@
 package com.uber.pegasus.parquet.column;
 
+import com.uber.pegasus.parquet.LevelsReader;
 import com.uber.pegasus.parquet.value.PlainBooleanValuesReader;
 import com.uber.pegasus.parquet.value.PlainDoubleValuesReader;
 import com.uber.pegasus.parquet.value.PlainFloatValuesReader;
@@ -9,6 +10,7 @@ import com.uber.pegasus.parquet.value.RleBooleanValuesReader;
 import com.uber.pegasus.parquet.value.RleIntValuesReader;
 import com.uber.pegasus.parquet.value.ValuesReader;
 
+import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.IntVector;
 import org.apache.arrow.vector.ValueVector;
@@ -59,7 +61,7 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
   private final int maxDefLevel;
 
   /** Decoder for definition levels */
-  private RleIntValuesReader defColumn;
+  private LevelsReader<V> defColumn;
 
   /** The dictionary, if this column has dictionary encoding */
   protected final Dictionary dictionary;
@@ -67,14 +69,19 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
   /** Decode for values */
   protected ValuesReader<V> valueColumn;
 
+  /** Allocator used to allocate new buffer memory */
+  protected final BufferAllocator allocator;
+
   public AbstractColumnReader(
       ColumnDescriptor desc,
       OriginalType originalType,
-      PageReader pageReader) throws IOException {
+      PageReader pageReader,
+      BufferAllocator allocator) throws IOException {
     this.desc = desc;
     this.originalType = originalType;
     this.pageReader = pageReader;
     this.maxDefLevel = desc.getMaxDefinitionLevel();
+    this.allocator = allocator;
 
     DictionaryPage dictionaryPage = pageReader.readDictionaryPage();
     if (dictionaryPage != null) {
@@ -102,12 +109,18 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
 
       int valuesInCurrentPage = Math.min(total, leftInPage);
 
+      // The current page is dictionary-encoded
+      // In this case, the dictionary should already be prepared and we'll need to
+      // first decode the dictionary ids, and then dictionary values into the value column
+      // TODO: can we lazily decode the dictionary values?
       if (isCurrentPageDictionaryEncoded) {
         // TODO: reuse dictionary
-        IntVector dictionaryIds = new IntVector("dictionary", new RootAllocator(Long.MAX_VALUE));
-        defColumn.readBatch(dictionaryIds, rowId, total, maxDefLevel, (RleIntValuesReader) valueColumn);
+        IntVector dictionaryIds = new IntVector("dictionary", allocator);
+        defColumn.readBatch(dictionaryIds, column, rowId, total, maxDefLevel,
+            (RleIntValuesReader) valueColumn);
 
-        // we'll need to decode the dictionary values - however this depends on the type of column
+        // we'll need to decode the dictionary values - however this depends on the type
+        // of column
         decodeDictionary(column, dictionaryIds, rowId, total);
       } else {
         valueColumn.readBatch(column, rowId, total);
@@ -119,7 +132,8 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
     }
   }
 
-  protected abstract void decodeDictionary(V column, IntVector dictionaryIds, int rowId, int total);
+  protected abstract void decodeDictionary(V column, IntVector dictionaryIds,
+      int rowId, int total);
 
   private void readPage() {
     DataPage dataPage = pageReader.readPage();
@@ -163,7 +177,7 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
         throw new UnsupportedOperationException("Unsupported encoding: " +
             dataEncoding + " for dictionary data page");
       }
-      this.valueColumn = getRleValuesReader(desc);
+      this.valueColumn = getRleValuesReader(desc, allocator);
       this.isCurrentPageDictionaryEncoded = true;
     } else {
       if (dataEncoding != Encoding.PLAIN) {
@@ -190,33 +204,32 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
     org.apache.parquet.column.values.ValuesReader rlReader = page.getRlEncoding()
         .getValuesReader(desc, ValuesType.REPETITION_LEVEL);
     org.apache.parquet.column.values.ValuesReader dlReader =
-        new RleIntValuesReader(bitWidth);
+        new LevelsReader<V>(allocator, bitWidth);
 
     BytesInput bytes = page.getBytes();
     ByteBufferInputStream in = bytes.toInputStream();
     rlReader.initFromPage(pageValueCount, in);
     dlReader.initFromPage(pageValueCount, in); // TODO: which initFromPage this will call?
-    this.defColumn = (RleIntValuesReader) dlReader;
+    this.defColumn = (LevelsReader<V>) dlReader;
     initDataReader(page.getValueEncoding(), in);
   }
 
-  @SuppressWarnings("unchecked")
   private void readPageV2(DataPageV2 page) throws IOException {
     this.pageValueCount = page.getValueCount();
     int bitWidth = BytesUtils.getWidthFromMaxInt(desc.getMaxDefinitionLevel());
-    RleIntValuesReader dlReader = new RleIntValuesReader(bitWidth, false);
+    RleIntValuesReader dlReader = new RleIntValuesReader(allocator, bitWidth, false);
     dlReader.initFromPage(pageValueCount, page.getDefinitionLevels().toInputStream());
     initDataReader(page.getDataEncoding(), page.getData().toInputStream());
   }
 
   @SuppressWarnings("unchecked")
   private static <V extends ValueVector> ValuesReader<V> getRleValuesReader(
-      ColumnDescriptor desc) {
+      ColumnDescriptor desc, BufferAllocator allocator) {
     switch (desc.getPrimitiveType().getPrimitiveTypeName()) {
       case BOOLEAN:
-        return (ValuesReader<V>) new RleBooleanValuesReader();
+        return (ValuesReader<V>) new RleBooleanValuesReader(allocator);
       case INT32:
-        return (ValuesReader<V>) new RleIntValuesReader();
+        return (ValuesReader<V>) new RleIntValuesReader(allocator);
       default:
         throw new UnsupportedOperationException("Unsupported type for RLE encoding: " +
             desc.getPrimitiveType().getPrimitiveTypeName());

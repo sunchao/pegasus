@@ -16,6 +16,7 @@
 .settings
 build
 target
+out/
 .gradle
 gradlew.bat
 gradle/wrapper/gradle-wrapper.properties

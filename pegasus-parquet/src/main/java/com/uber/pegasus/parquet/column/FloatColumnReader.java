@@ -1,5 +1,6 @@
 package com.uber.pegasus.parquet.column;
 
+import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.Float4Vector;
 import org.apache.arrow.vector.IntVector;
 import org.apache.parquet.column.ColumnDescriptor;
@@ -9,9 +10,12 @@ import org.apache.parquet.schema.OriginalType;
 import java.io.IOException;
 
 public class FloatColumnReader extends AbstractColumnReader<Float4Vector> {
-  public FloatColumnReader(ColumnDescriptor desc, OriginalType originalType,
-      PageReader pageReader) throws IOException {
-    super(desc, originalType, pageReader);
+  public FloatColumnReader(
+      ColumnDescriptor desc,
+      OriginalType originalType,
+      PageReader pageReader,
+      BufferAllocator allocator) throws IOException {
+    super(desc, originalType, pageReader, allocator);
   }
 
   @Override

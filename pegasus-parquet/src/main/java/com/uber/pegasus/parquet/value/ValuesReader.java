@@ -4,6 +4,15 @@ import org.apache.arrow.vector.ValueVector;
 
 public abstract class ValuesReader<V extends ValueVector>
     extends org.apache.parquet.column.values.ValuesReader {
+
+  /**
+   * Read a single value and put in vector `c` at offset `rowId`.
+   *
+   * @param c the value vector to put the value to
+   * @param rowId the offset in `c`
+   */
+  public abstract void read(V c, int rowId);
+
   /**
    * Read a batch of values with size `total` and append to vector `c` starting
    * from offset `rowId`. Note that this doesn't handle null - it assumes all
@@ -15,7 +24,7 @@ public abstract class ValuesReader<V extends ValueVector>
    */
   public abstract void readBatch(V c, int rowId, int total);
 
-  @Override
+ @Override
   public void skip() {
     throw new UnsupportedOperationException();
   }

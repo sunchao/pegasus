@@ -1,5 +1,6 @@
 package com.uber.pegasus.parquet.column;
 
+import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.IntVector;
 import org.apache.parquet.column.ColumnDescriptor;
@@ -9,9 +10,12 @@ import org.apache.parquet.schema.OriginalType;
 import java.io.IOException;
 
 public class BooleanColumnReader extends AbstractColumnReader<BitVector> {
-  public BooleanColumnReader(ColumnDescriptor desc, OriginalType originalType,
-      PageReader pageReader) throws IOException {
-    super(desc, originalType, pageReader);
+  public BooleanColumnReader(
+      ColumnDescriptor desc,
+      OriginalType originalType,
+      PageReader pageReader,
+      BufferAllocator allocator) throws IOException {
+    super(desc, originalType, pageReader, allocator);
   }
 
   @Override
