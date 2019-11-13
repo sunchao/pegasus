@@ -31,6 +31,7 @@ allprojects {
     version = '0.1.0-SNAPSHOT'
 
     repositories {
+        maven { url "https://repo.maven.apache.org/maven2" }
         maven { url "https://maven-central.storage-download.googleapis.com/repos/central/data/" }
         mavenLocal()
         mavenCentral()
