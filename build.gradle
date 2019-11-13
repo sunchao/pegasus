@@ -33,9 +33,6 @@ allprojects {
     repositories {
         maven { url "https://maven-central.storage-download.googleapis.com/repos/central/data/" }
         mavenLocal()
-        maven { url = 'http://artifactory.uber.internal:4587/artifactory/libs-release-local/' }
-        maven { url = 'http://artifactory.uber.internal:4587/artifactory/libs-snapshot-local/' }
-        maven { url = 'http://artifactory.uber.internal:4587/artifactory/ext-release-local/' }
     }
 
     dependencies {
