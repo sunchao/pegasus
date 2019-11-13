@@ -99,7 +99,7 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
     }
   }
 
-  void readBatch(int total, V column) {
+  public void readBatch(int total, V column) {
     int rowId = 0;
     while (total > 0) {
       // compute the number of values we want to read in this page
@@ -202,6 +202,7 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
   @SuppressWarnings("unchecked")
   private void readPageV1(DataPageV1 page) throws IOException {
     this.pageValueCount = page.getValueCount();
+    this.valuesRead = 0;
     if (page.getDlEncoding() != Encoding.RLE && desc.getMaxDefinitionLevel() != 0) {
       throw new UnsupportedOperationException(
           "Unsupported definition level encoding: " + page.getDlEncoding());
@@ -225,6 +226,7 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
 
   private void readPageV2(DataPageV2 page) throws IOException {
     this.pageValueCount = page.getValueCount();
+    this.valuesRead = 0;
     int bitWidth = BytesUtils.getWidthFromMaxInt(desc.getMaxDefinitionLevel());
     defColumn = new LevelsReader<>(allocator, bitWidth, false);
     defColumn.initFromPage(pageValueCount, page.getDefinitionLevels().toInputStream());

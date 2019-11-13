@@ -7,6 +7,7 @@ dependencies {
     implementation "org.apache.parquet:parquet-column:${parquetVersion}"
     implementation "org.apache.parquet:parquet-encoding:${parquetVersion}"
     implementation "org.apache.parquet:parquet-common:${parquetVersion}"
+    implementation "org.apache.parquet:parquet-hadoop-bundle:${parquetVersion}"
 
     testImplementation "org.apache.parquet:parquet-column:${parquetVersion}:tests"
 }
