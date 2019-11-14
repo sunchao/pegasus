@@ -11,7 +11,6 @@ import org.apache.arrow.vector.ValueVector;
 import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.bytes.DirectByteBufferAllocator;
-import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.values.plain.PlainValuesWriter;
 import org.junit.Test;
 
