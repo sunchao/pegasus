@@ -65,6 +65,9 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
   /** The dictionary, if this column has dictionary encoding */
   protected final Dictionary dictionary;
 
+  /** Stores the IDs for dictionary page. */
+  private IntVector dictionaryIds;
+
   /** Decode for values */
   protected ValuesReader<V> valueColumn;
 
@@ -113,8 +116,14 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
       // first decode the dictionary ids, and then dictionary values into the value column
       // TODO: can we lazily decode the dictionary values?
       if (isCurrentPageDictionaryEncoded) {
-        // TODO: reuse dictionary
-        IntVector dictionaryIds = new IntVector("dictionary", allocator);
+        if (dictionaryIds == null) {
+          dictionaryIds = new IntVector("dictionary", allocator);
+        }
+        dictionaryIds.reset();
+        if (dictionaryIds.getValueCapacity() < total) {
+          dictionaryIds.setInitialCapacity(total);
+          dictionaryIds.allocateNew();
+        }
         defColumn.readBatch(dictionaryIds, column, rowId, total, maxDefLevel,
             (RleIntValuesReader) valueColumn);
 

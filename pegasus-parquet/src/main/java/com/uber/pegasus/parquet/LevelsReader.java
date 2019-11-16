@@ -90,6 +90,9 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
         case RLE:
           if (currentValue == maxDefLevel) {
             data.readBatch(ids, rowId, n);
+            for (int i = 0; i < n; i++) {
+              BitVectorHelper.setValidityBitToOne(nulls.getValidityBuffer(), rowId + i);
+            }
           } else {
             // TODO: batch this
             for (int i = 0; i < n; i++) {
@@ -101,6 +104,7 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
           for (int i = 0; i < n; ++i) {
             if (currentBuffer[currentBufferIdx++] == maxDefLevel) {
               ids.set(rowId + i, data.readInteger());
+              BitVectorHelper.setValidityBitToOne(nulls.getValidityBuffer(), rowId + i);
             } else {
               BitVectorHelper.setValidityBit(nulls.getValidityBuffer(), rowId, 0);
             }

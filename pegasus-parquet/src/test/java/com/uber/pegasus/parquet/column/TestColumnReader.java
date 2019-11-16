@@ -32,12 +32,12 @@ public class TestColumnReader {
 
   @Test
   public void testPlainV1NotNull() throws IOException {
-    testPlainInt(true, false, Collections.nCopies(100, Optional.of(42)));
+    testInt(true, false, false, Collections.nCopies(100, Optional.of(42)));
  }
 
   @Test
   public void testPlainV2NotNull() throws IOException {
-    testPlainInt(false, false, Collections.nCopies(100, Optional.of(42)));
+    testInt(false, false, false, Collections.nCopies(100, Optional.of(42)));
  }
 
  @Test
@@ -49,7 +49,7 @@ public class TestColumnReader {
     for (int i = 0; i < 50; i++) {
       data.add(Optional.of(42));
     }
-    testPlainInt(false, true, data);
+    testInt(false, true, false, data);
  }
 
   @Test
@@ -63,10 +63,30 @@ public class TestColumnReader {
         data.add(Optional.of(RAND.nextInt()));
       }
     }
-    testPlainInt(true, true, data);
+    testInt(true, true, false, data);
   }
 
-  private void testPlainInt(boolean useV1, boolean hasNull,
+  @Test
+  public void testDictV1NotNull() throws IOException {
+    testInt(true, false, true, Collections.nCopies(100, Optional.of(42)));
+  }
+
+  @Test
+  public void testDictV2NotNull() throws IOException {
+    testInt(false, false, true, Collections.nCopies(100, Optional.of(42)));
+  }
+
+  @Test
+  public void testDictV1Null() throws IOException {
+    testInt(true, true, true, Collections.nCopies(100, Optional.of(42)));
+  }
+
+  @Test
+  public void testDictV2Null() throws IOException {
+    testInt(false, true, true, Collections.nCopies(100, Optional.of(42)));
+  }
+
+  private void testInt(boolean useV1, boolean hasNull, boolean useDict,
       List<Optional<Integer>> data) throws IOException {
     MessageType schema = MessageTypeParser.parseMessageType(
         "message test { " + (hasNull ? "optional" : "required") + " int32 foo; }");
@@ -78,7 +98,7 @@ public class TestColumnReader {
           pageStore,
           ParquetProperties.builder()
               .withPageSize(PAGE_SIZE)
-              .withDictionaryEncoding(false)
+              .withDictionaryEncoding(useDict)
               .build()
       );
     } else {
@@ -87,7 +107,7 @@ public class TestColumnReader {
           pageStore,
           ParquetProperties.builder()
               .withPageSize(PAGE_SIZE)
-              .withDictionaryEncoding(false)
+              .withDictionaryEncoding(useDict)
               .build()
       );
     }
