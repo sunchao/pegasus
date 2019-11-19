@@ -1,9 +1,8 @@
 package com.uber.pegasus;
 
+import java.net.InetSocketAddress;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.net.InetSocketAddress;
 
 public class PegasusMaster {
   private static final Logger LOG = LogManager.getFormatterLogger(PegasusMaster.class);

@@ -8,8 +8,8 @@ import org.apache.arrow.vector.IntVector;
 import org.apache.arrow.vector.ValueVector;
 
 /**
- * Class for Parquet level reader.
- * Currently the only implementation for this is RLE-based level reader.
+ * Class for Parquet level reader. Currently the only implementation for this is RLE-based level
+ * reader.
  */
 public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
   public LevelsReader(BufferAllocator allocator, int bitWidth) {
@@ -21,8 +21,8 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
   }
 
   /**
-   * Read a batch of `total` values into value vector `c`, starting from offset `rowId`.
-   * The values are read from `data`.
+   * Read a batch of `total` values into value vector `c`, starting from offset `rowId`. The values
+   * are read from `data`.
    *
    * @param c the value vector to fill in
    * @param rowId the starting offset in value vector to append new values
@@ -30,8 +30,7 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
    * @param maxDefLevel the maximum definition level for this column
    * @param data the data value reader
    */
-  public void readBatch(V c, int rowId, int total, int maxDefLevel,
-      ValuesReader<V> data) {
+  public void readBatch(V c, int rowId, int total, int maxDefLevel, ValuesReader<V> data) {
     int left = total;
     while (left > 0) {
       if (this.currentCount == 0) this.readNextGroup();
@@ -69,9 +68,9 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
   }
 
   /**
-   * Read a batch of dictionary IDs from RLE-encoded `data`. The batch size is specified
-   * via `total` and starting position is `rowId`. The IDs will be read into `ids` and
-   * nulls will be filled in `nulls` which is the vector for the actual values.
+   * Read a batch of dictionary IDs from RLE-encoded `data`. The batch size is specified via `total`
+   * and starting position is `rowId`. The IDs will be read into `ids` and nulls will be filled in
+   * `nulls` which is the vector for the actual values.
    *
    * @param ids the vector where the dictionary IDs will be read into
    * @param nulls the value vector to fill nulls in
@@ -80,8 +79,8 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
    * @param maxDefLevel the4 maximum definition level for this column
    * @param data the data value reader
    */
-  public void readBatch(IntVector ids, V nulls, int rowId, int total, int maxDefLevel,
-      RleIntValuesReader data) {
+  public void readBatch(
+      IntVector ids, V nulls, int rowId, int total, int maxDefLevel, RleIntValuesReader data) {
     int left = total;
     while (left > 0) {
       if (this.currentCount == 0) this.readNextGroup();

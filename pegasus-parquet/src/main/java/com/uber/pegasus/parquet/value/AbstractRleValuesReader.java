@@ -1,5 +1,7 @@
 package com.uber.pegasus.parquet.value;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.ValueVector;
 import org.apache.parquet.Preconditions;
@@ -9,14 +11,8 @@ import org.apache.parquet.column.values.bitpacking.BytePacker;
 import org.apache.parquet.column.values.bitpacking.Packer;
 import org.apache.parquet.io.ParquetDecodingException;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-public abstract class AbstractRleValuesReader<V extends ValueVector>
-    extends ValuesReader<V> {
-  /**
-   * Encoding mode
-   */
+public abstract class AbstractRleValuesReader<V extends ValueVector> extends ValuesReader<V> {
+  /** Encoding mode */
   protected enum Mode {
     RLE,
     PACKED
@@ -58,8 +54,7 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
     init(bitWidth);
   }
 
-  public AbstractRleValuesReader(BufferAllocator allocator, int bitWidth,
-      boolean readLength) {
+  public AbstractRleValuesReader(BufferAllocator allocator, int bitWidth, boolean readLength) {
     this.fixedWidth = true;
     this.readLength = readLength;
     this.allocator = allocator;
@@ -105,8 +100,8 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
   // abstract protected void setValue(V v, int idx);
 
   private void init(int bitWidth) {
-    Preconditions.checkArgument(bitWidth >= 0 && bitWidth <= 32,
-        "bitWidth must be >= 0 and <= 32, but found " + bitWidth);
+    Preconditions.checkArgument(
+        bitWidth >= 0 && bitWidth <= 32, "bitWidth must be >= 0 and <= 32, but found " + bitWidth);
     this.bitWidth = bitWidth;
     this.bytesWidth = BytesUtils.paddedByteCountFromBits(bitWidth);
     this.packer = Packer.LITTLE_ENDIAN.newBytePacker(bitWidth);
@@ -127,9 +122,7 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
     }
   }
 
-  /**
-   * Reads the next group.
-   */
+  /** Reads the next group. */
   protected void readNextGroup() {
     try {
       int header = readUnsignedVarInt();
@@ -151,8 +144,7 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
           while (valueIndex < this.currentCount) {
             // values are bit packed 8 at a time, so reading bitWidth will always work
             ByteBuffer buffer = in.slice(bitWidth);
-            this.packer.unpack8Values(buffer, buffer.position(), this.currentBuffer,
-                valueIndex);
+            this.packer.unpack8Values(buffer, buffer.position(), this.currentBuffer, valueIndex);
             valueIndex += 8;
           }
           return;
@@ -164,9 +156,7 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
     }
   }
 
-  /**
-   * Reads the next varint encoded int.
-   */
+  /** Reads the next varint encoded int. */
   private int readUnsignedVarInt() throws IOException {
     int value = 0;
     int shift = 0;
@@ -179,9 +169,7 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
     return value;
   }
 
-  /**
-   * Reads the next 4 byte little endian int.
-   */
+  /** Reads the next 4 byte little endian int. */
   private int readIntLittleEndian() throws IOException {
     int ch4 = in.read();
     int ch3 = in.read();
@@ -190,31 +178,31 @@ public abstract class AbstractRleValuesReader<V extends ValueVector>
     return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
   }
 
-  /**
-   * Reads the next byteWidth little endian int.
-   */
+  /** Reads the next byteWidth little endian int. */
   private int readIntLittleEndianPaddedOnBitWidth() throws IOException {
     switch (bytesWidth) {
       case 0:
         return 0;
       case 1:
         return in.read();
-      case 2: {
-        int ch2 = in.read();
-        int ch1 = in.read();
-        return (ch1 << 8) + ch2;
-      }
-      case 3: {
-        int ch3 = in.read();
-        int ch2 = in.read();
-        int ch1 = in.read();
-        return (ch1 << 16) + (ch2 << 8) + (ch3 << 0);
-      }
-      case 4: {
-        return readIntLittleEndian();
-      }
+      case 2:
+        {
+          int ch2 = in.read();
+          int ch1 = in.read();
+          return (ch1 << 8) + ch2;
+        }
+      case 3:
+        {
+          int ch3 = in.read();
+          int ch2 = in.read();
+          int ch1 = in.read();
+          return (ch1 << 16) + (ch2 << 8) + (ch3 << 0);
+        }
+      case 4:
+        {
+          return readIntLittleEndian();
+        }
     }
     throw new RuntimeException("Unreachable");
   }
-
 }

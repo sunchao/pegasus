@@ -9,7 +9,7 @@ import com.uber.pegasus.parquet.value.PlainLongValuesReader;
 import com.uber.pegasus.parquet.value.RleBooleanValuesReader;
 import com.uber.pegasus.parquet.value.RleIntValuesReader;
 import com.uber.pegasus.parquet.value.ValuesReader;
-
+import java.io.IOException;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.IntVector;
 import org.apache.arrow.vector.ValueVector;
@@ -27,12 +27,10 @@ import org.apache.parquet.column.page.DictionaryPage;
 import org.apache.parquet.column.page.PageReader;
 import org.apache.parquet.schema.OriginalType;
 
-import java.io.IOException;
-
 /**
- * Decoder to return values from a single column. The column vector type
- * is provided via the generic parameter `V` and MUST be consistent with
- * the `ColumnDescriptor` and `OriginalType` passed to the constructor.
+ * Decoder to return values from a single column. The column vector type is provided via the generic
+ * parameter `V` and MUST be consistent with the `ColumnDescriptor` and `OriginalType` passed to the
+ * constructor.
  */
 public abstract class AbstractColumnReader<V extends ValueVector> {
   private final ColumnDescriptor desc;
@@ -48,8 +46,9 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
   /** The total number of values in the current page. */
   private int pageValueCount;
 
-  /** value that indicates the end of the current page. That is, if
-   * valuesRead == endOfPageValueCount, we are at the end of the page.
+  /**
+   * value that indicates the end of the current page. That is, if valuesRead ==
+   * endOfPageValueCount, we are at the end of the page.
    */
   private long endOfPageValueCount;
 
@@ -78,7 +77,8 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
       ColumnDescriptor desc,
       OriginalType originalType,
       PageReader pageReader,
-      BufferAllocator allocator) throws IOException {
+      BufferAllocator allocator)
+      throws IOException {
     this.desc = desc;
     this.originalType = originalType;
     this.pageReader = pageReader;
@@ -124,8 +124,8 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
           dictionaryIds.setInitialCapacity(total);
           dictionaryIds.allocateNew();
         }
-        defColumn.readBatch(dictionaryIds, column, rowId, total, maxDefLevel,
-            (RleIntValuesReader) valueColumn);
+        defColumn.readBatch(
+            dictionaryIds, column, rowId, total, maxDefLevel, (RleIntValuesReader) valueColumn);
 
         // we'll need to decode the dictionary values - however this depends on the type
         // of column
@@ -140,57 +140,57 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
     }
   }
 
-  protected abstract void decodeDictionary(V column, IntVector dictionaryIds,
-      int rowId, int total);
+  protected abstract void decodeDictionary(V column, IntVector dictionaryIds, int rowId, int total);
 
   private void readPage() {
     DataPage dataPage = pageReader.readPage();
-    dataPage.accept(new DataPage.Visitor<Void>() {
-      @Override
-      public Void visit(DataPageV1 dataPageV1) {
-        try {
-          readPageV1(dataPageV1);
-          return null;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
+    dataPage.accept(
+        new DataPage.Visitor<Void>() {
+          @Override
+          public Void visit(DataPageV1 dataPageV1) {
+            try {
+              readPageV1(dataPageV1);
+              return null;
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
 
-      @Override
-      public Void visit(DataPageV2 dataPageV2) {
-        try {
-          readPageV2(dataPageV2);
-          return null;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
+          @Override
+          public Void visit(DataPageV2 dataPageV2) {
+            try {
+              readPageV2(dataPageV2);
+              return null;
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
+        });
   }
 
   @SuppressWarnings("deprecation")
-  private void initDataReader(Encoding dataEncoding, ByteBufferInputStream in)
-      throws IOException {
+  private void initDataReader(Encoding dataEncoding, ByteBufferInputStream in) throws IOException {
     this.endOfPageValueCount = valuesRead + pageValueCount;
     if (dataEncoding.usesDictionary()) {
       // a data page for dictionary encoding
       if (dictionary == null) {
         throw new IOException(
-            "Could not read page in column " + desc + " as the dictionary was missing " +
-                "for encoding " + dataEncoding
-        );
+            "Could not read page in column "
+                + desc
+                + " as the dictionary was missing "
+                + "for encoding "
+                + dataEncoding);
       }
-      if (dataEncoding != Encoding.PLAIN_DICTIONARY &&
-          dataEncoding != Encoding.RLE_DICTIONARY) {
-        throw new UnsupportedOperationException("Unsupported encoding: " +
-            dataEncoding + " for dictionary data page");
+      if (dataEncoding != Encoding.PLAIN_DICTIONARY && dataEncoding != Encoding.RLE_DICTIONARY) {
+        throw new UnsupportedOperationException(
+            "Unsupported encoding: " + dataEncoding + " for dictionary data page");
       }
       this.valueColumn = getRleValuesReader(desc, allocator);
       this.isCurrentPageDictionaryEncoded = true;
     } else {
       if (dataEncoding != Encoding.PLAIN) {
-        throw new UnsupportedOperationException("Unsupported encoding: " +
-            dataEncoding + " for non-dictionary data page");
+        throw new UnsupportedOperationException(
+            "Unsupported encoding: " + dataEncoding + " for non-dictionary data page");
       }
       this.valueColumn = getPlainValuesReader(desc);
       this.isCurrentPageDictionaryEncoded = false;
@@ -203,12 +203,19 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
   private void readPageV1(DataPageV1 page) throws IOException {
     this.pageValueCount = page.getValueCount();
     if (page.getDlEncoding() != Encoding.RLE && desc.getMaxDefinitionLevel() != 0) {
-      throw new UnsupportedOperationException("Unsupported definition level encoding: "
-          + page.getDlEncoding());
+      throw new UnsupportedOperationException(
+          "Unsupported definition level encoding: " + page.getDlEncoding());
     }
 
     // create def & rep level decoders to init input stream
     int bitWidth = BytesUtils.getWidthFromMaxInt(desc.getMaxDefinitionLevel());
+<<<<<<< HEAD
+=======
+    org.apache.parquet.column.values.ValuesReader rlReader =
+        page.getRlEncoding().getValuesReader(desc, ValuesType.REPETITION_LEVEL);
+    org.apache.parquet.column.values.ValuesReader dlReader =
+        new LevelsReader<V>(allocator, bitWidth);
+>>>>>>> Fix format issue
 
     BytesInput bytes = page.getBytes();
     ByteBufferInputStream in = bytes.toInputStream();
@@ -240,8 +247,8 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
       case INT32:
         return (ValuesReader<V>) new RleIntValuesReader(allocator);
       default:
-        throw new UnsupportedOperationException("Unsupported type for RLE encoding: " +
-            desc.getPrimitiveType().getPrimitiveTypeName());
+        throw new UnsupportedOperationException(
+            "Unsupported type for RLE encoding: " + desc.getPrimitiveType().getPrimitiveTypeName());
     }
   }
 
@@ -260,8 +267,9 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
       case DOUBLE:
         return (ValuesReader<V>) new PlainDoubleValuesReader();
       default:
-        throw new UnsupportedOperationException("Unsupported type for plain encoding: " +
-            desc.getPrimitiveType().getPrimitiveTypeName());
+        throw new UnsupportedOperationException(
+            "Unsupported type for plain encoding: "
+                + desc.getPrimitiveType().getPrimitiveTypeName());
     }
   }
 }

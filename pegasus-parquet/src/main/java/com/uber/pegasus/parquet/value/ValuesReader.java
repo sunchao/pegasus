@@ -14,9 +14,9 @@ public abstract class ValuesReader<V extends ValueVector>
   public abstract void read(V c, int rowId);
 
   /**
-   * Read a batch of values with size `total` and append to vector `c` starting
-   * from offset `rowId`. Note that this doesn't handle null - it assumes all
-   * values are not-null and append them into a contiguous region in `c`.
+   * Read a batch of values with size `total` and append to vector `c` starting from offset `rowId`.
+   * Note that this doesn't handle null - it assumes all values are not-null and append them into a
+   * contiguous region in `c`.
    *
    * @param c the value vector to fill in
    * @param rowId the starting row index in `c`
@@ -24,7 +24,7 @@ public abstract class ValuesReader<V extends ValueVector>
    */
   public abstract void readBatch(V c, int rowId, int total);
 
- @Override
+  @Override
   public void skip() {
     throw new UnsupportedOperationException();
   }
