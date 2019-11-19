@@ -13,9 +13,10 @@ jobs:
       - restore_cache:
           key: v1-gradle-cache-{{ checksum "build.gradle" }}
       - run:
-          name: Build source
+          name: Build source & Style check
           command:
             ./gralew clean build
+      - run:
           name: Run tests
           command:
             ./gradlew test
