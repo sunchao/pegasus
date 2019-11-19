@@ -39,7 +39,12 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
       switch (mode) {
         case RLE:
           if (currentValue == maxDefLevel) {
-            data.readBatch(c, rowId, total);
+            data.readBatch(c, rowId, n);
+            // TODO: this is not good - we should use something like memset for
+            //   multi-byte set bit.
+            for (int i = 0; i < n; i++) {
+              BitVectorHelper.setValidityBitToOne(c.getValidityBuffer(), rowId + i);
+            }
           } else {
             for (int i = 0; i < n; i++) {
               BitVectorHelper.setValidityBit(c.getValidityBuffer(), rowId + i, 0);
@@ -50,6 +55,7 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
           for (int i = 0; i < n; ++i) {
             if (currentBuffer[currentBufferIdx++] == maxDefLevel) {
               data.read(c, rowId + i);
+              BitVectorHelper.setValidityBitToOne(c.getValidityBuffer(), rowId + i);
             } else {
               BitVectorHelper.setValidityBit(c.getValidityBuffer(), rowId + i, 0);
             }
@@ -84,6 +90,9 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
         case RLE:
           if (currentValue == maxDefLevel) {
             data.readBatch(ids, rowId, n);
+            for (int i = 0; i < n; i++) {
+              BitVectorHelper.setValidityBitToOne(nulls.getValidityBuffer(), rowId + i);
+            }
           } else {
             // TODO: batch this
             for (int i = 0; i < n; i++) {
@@ -95,6 +104,7 @@ public class LevelsReader<V extends ValueVector> extends RleIntValuesReader {
           for (int i = 0; i < n; ++i) {
             if (currentBuffer[currentBufferIdx++] == maxDefLevel) {
               ids.set(rowId + i, data.readInteger());
+              BitVectorHelper.setValidityBitToOne(nulls.getValidityBuffer(), rowId + i);
             } else {
               BitVectorHelper.setValidityBit(nulls.getValidityBuffer(), rowId, 0);
             }

@@ -11,7 +11,6 @@ import com.uber.pegasus.parquet.value.RleIntValuesReader;
 import com.uber.pegasus.parquet.value.ValuesReader;
 
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.IntVector;
 import org.apache.arrow.vector.ValueVector;
 import org.apache.parquet.bytes.ByteBufferInputStream;
@@ -66,6 +65,9 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
   /** The dictionary, if this column has dictionary encoding */
   protected final Dictionary dictionary;
 
+  /** Stores the IDs for dictionary page. */
+  private IntVector dictionaryIds;
+
   /** Decode for values */
   protected ValuesReader<V> valueColumn;
 
@@ -114,8 +116,14 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
       // first decode the dictionary ids, and then dictionary values into the value column
       // TODO: can we lazily decode the dictionary values?
       if (isCurrentPageDictionaryEncoded) {
-        // TODO: reuse dictionary
-        IntVector dictionaryIds = new IntVector("dictionary", allocator);
+        if (dictionaryIds == null) {
+          dictionaryIds = new IntVector("dictionary", allocator);
+        }
+        dictionaryIds.reset();
+        if (dictionaryIds.getValueCapacity() < total) {
+          dictionaryIds.setInitialCapacity(total);
+          dictionaryIds.allocateNew();
+        }
         defColumn.readBatch(dictionaryIds, column, rowId, total, maxDefLevel,
             (RleIntValuesReader) valueColumn);
 
@@ -123,7 +131,7 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
         // of column
         decodeDictionary(column, dictionaryIds, rowId, total);
       } else {
-        valueColumn.readBatch(column, rowId, total);
+        defColumn.readBatch(column, rowId, total, maxDefLevel, valueColumn);
       }
 
       valuesRead += valuesInCurrentPage;
@@ -201,24 +209,25 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
 
     // create def & rep level decoders to init input stream
     int bitWidth = BytesUtils.getWidthFromMaxInt(desc.getMaxDefinitionLevel());
-    org.apache.parquet.column.values.ValuesReader rlReader = page.getRlEncoding()
-        .getValuesReader(desc, ValuesType.REPETITION_LEVEL);
-    org.apache.parquet.column.values.ValuesReader dlReader =
-        new LevelsReader<V>(allocator, bitWidth);
 
     BytesInput bytes = page.getBytes();
     ByteBufferInputStream in = bytes.toInputStream();
-    rlReader.initFromPage(pageValueCount, in);
-    dlReader.initFromPage(pageValueCount, in); // TODO: which initFromPage this will call?
-    this.defColumn = (LevelsReader<V>) dlReader;
+
+    // only used now to consume the repetition level data
+    page.getRlEncoding()
+        .getValuesReader(desc, ValuesType.REPETITION_LEVEL)
+        .initFromPage(pageValueCount, in);
+
+    defColumn = new LevelsReader<>(allocator, bitWidth);
+    defColumn.initFromPage(pageValueCount, in);
     initDataReader(page.getValueEncoding(), in);
   }
 
   private void readPageV2(DataPageV2 page) throws IOException {
     this.pageValueCount = page.getValueCount();
     int bitWidth = BytesUtils.getWidthFromMaxInt(desc.getMaxDefinitionLevel());
-    RleIntValuesReader dlReader = new RleIntValuesReader(allocator, bitWidth, false);
-    dlReader.initFromPage(pageValueCount, page.getDefinitionLevels().toInputStream());
+    defColumn = new LevelsReader<>(allocator, bitWidth, false);
+    defColumn.initFromPage(pageValueCount, page.getDefinitionLevels().toInputStream());
     initDataReader(page.getDataEncoding(), page.getData().toInputStream());
   }
 
