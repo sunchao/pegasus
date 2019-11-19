@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Build source & Style check
           command:
-            ./gralew clean build
+            ./gradlew clean build
       - run:
           name: Run tests
           command:
