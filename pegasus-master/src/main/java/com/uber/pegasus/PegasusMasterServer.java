@@ -2,11 +2,10 @@ package com.uber.pegasus;
 
 import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class PegasusMasterServer implements AutoCloseable {
   private static final Logger LOG = LogManager.getLogger(PegasusMasterServer.class);
@@ -18,17 +17,13 @@ public class PegasusMasterServer implements AutoCloseable {
     this.port = port;
 
     // TODO: many more configurations on this!
-    this.server = NettyServerBuilder.forPort(port)
-        .addService(new PegasusMasterService())
-        .build();
+    this.server = NettyServerBuilder.forPort(port).addService(new PegasusMasterService()).build();
   }
 
   public PegasusMasterServer(InetSocketAddress ss) {
     this.port = ss.getPort();
 
-    this.server = NettyServerBuilder.forAddress(ss)
-        .addService(new PegasusMasterService())
-        .build();
+    this.server = NettyServerBuilder.forAddress(ss).addService(new PegasusMasterService()).build();
   }
 
   public void start() throws IOException {

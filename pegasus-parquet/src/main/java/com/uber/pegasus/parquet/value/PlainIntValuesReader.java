@@ -1,9 +1,8 @@
 package com.uber.pegasus.parquet.value;
 
 import io.netty.buffer.ArrowBuf;
-import org.apache.arrow.vector.IntVector;
-
 import java.nio.ByteBuffer;
+import org.apache.arrow.vector.IntVector;
 
 public class PlainIntValuesReader extends AbstractPlainValuesReader<IntVector> {
   @Override

@@ -4,14 +4,12 @@ import com.uber.pegasus.proto.Pegasus;
 import com.uber.pegasus.proto.PegasusMasterServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.TimeUnit;
-
 public class PegasusMasterClient {
-  private static final Logger LOG =
-      LogManager.getFormatterLogger(PegasusMasterClient.class);
+  private static final Logger LOG = LogManager.getFormatterLogger(PegasusMasterClient.class);
 
   private final ManagedChannel channel;
   private final PegasusMasterServiceGrpc.PegasusMasterServiceBlockingStub blockingStub;
@@ -32,8 +30,7 @@ public class PegasusMasterClient {
   }
 
   public void printVersion() {
-    Pegasus.GetVersionResponse resp =
-        blockingStub.getVersion(Pegasus.Empty.newBuilder().build());
+    Pegasus.GetVersionResponse resp = blockingStub.getVersion(Pegasus.Empty.newBuilder().build());
     LOG.info("Version = " + resp.getVersion());
   }
 
@@ -43,8 +40,7 @@ public class PegasusMasterClient {
       System.exit(1);
     }
 
-    PegasusMasterClient client =
-        new PegasusMasterClient(args[0], Integer.parseInt(args[1]));
+    PegasusMasterClient client = new PegasusMasterClient(args[0], Integer.parseInt(args[1]));
     client.printVersion();
     client.shutdown();
     LOG.info("Done");

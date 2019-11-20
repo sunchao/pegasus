@@ -1,5 +1,9 @@
 package com.uber.pegasus.parquet.value;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BigIntVector;
@@ -14,19 +18,12 @@ import org.apache.parquet.bytes.DirectByteBufferAllocator;
 import org.apache.parquet.column.values.plain.PlainValuesWriter;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import static org.junit.Assert.assertEquals;
-
 public class TestPlainValuesReader {
   private static final int SIZE = 100;
   private static final int INITIAL_CAPACITY = 10;
   private static final int PAGE_SIZE = 100;
-  private static final ByteBufferAllocator ALLOCATOR =
-      new DirectByteBufferAllocator();
-  private static final BufferAllocator BUFFER_ALLOCATOR =
-      new RootAllocator(Long.MAX_VALUE);
+  private static final ByteBufferAllocator ALLOCATOR = new DirectByteBufferAllocator();
+  private static final BufferAllocator BUFFER_ALLOCATOR = new RootAllocator(Long.MAX_VALUE);
 
   @Test
   public void testIntBasic() throws IOException {
@@ -117,8 +114,7 @@ public class TestPlainValuesReader {
   }
 
   private static <V extends ValueVector> void process(
-      PlainValuesWriter writer, AbstractPlainValuesReader<V> reader, V out)
-      throws IOException {
+      PlainValuesWriter writer, AbstractPlainValuesReader<V> reader, V out) throws IOException {
     ByteBuffer buf = writer.getBytes().toByteBuffer();
     ByteBufferInputStream in = ByteBufferInputStream.wrap(buf);
     reader.initFromPage(SIZE, in);

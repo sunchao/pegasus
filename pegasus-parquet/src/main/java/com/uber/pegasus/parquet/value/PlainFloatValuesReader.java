@@ -1,14 +1,13 @@
 package com.uber.pegasus.parquet.value;
 
 import io.netty.buffer.ArrowBuf;
+import java.nio.ByteBuffer;
 import org.apache.arrow.vector.Float4Vector;
 
-import java.nio.ByteBuffer;
-
 public class PlainFloatValuesReader extends AbstractPlainValuesReader<Float4Vector> {
- @Override
+  @Override
   public void read(Float4Vector c, int rowId) {
-   c.set(rowId, getBuffer(4).getFloat());
+    c.set(rowId, getBuffer(4).getFloat());
   }
 
   @Override

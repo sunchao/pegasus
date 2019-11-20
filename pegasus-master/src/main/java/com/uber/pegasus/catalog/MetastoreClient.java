@@ -15,8 +15,9 @@ public class MetastoreClient implements AutoCloseable {
 
   public MetastoreClient(HiveConf hiveConf) {
     try {
-      hiveClient = RetryingMetaStoreClient.getProxy(hiveConf,
-          (tbl) -> null, HiveMetaStoreClient.class.getName());
+      hiveClient =
+          RetryingMetaStoreClient.getProxy(
+              hiveConf, (tbl) -> null, HiveMetaStoreClient.class.getName());
     } catch (MetaException e) {
       LOG.warn("Error creating HMS client", e);
       throw new IllegalStateException(e);

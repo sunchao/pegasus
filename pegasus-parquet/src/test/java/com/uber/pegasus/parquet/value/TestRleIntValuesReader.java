@@ -1,5 +1,8 @@
 package com.uber.pegasus.parquet.value;
 
+import static org.junit.Assert.assertEquals;
+
+import java.nio.ByteBuffer;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.IntVector;
@@ -7,17 +10,11 @@ import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.bytes.DirectByteBufferAllocator;
 import org.apache.parquet.column.values.rle.RunLengthBitPackingHybridValuesWriter;
-
 import org.junit.Test;
-
-import java.nio.ByteBuffer;
-
-import static org.junit.Assert.assertEquals;
 
 public class TestRleIntValuesReader {
   private static final ByteBufferAllocator ALLOCATOR = new DirectByteBufferAllocator();
-  private static final BufferAllocator BUFFER_ALLOCATOR =
-      new RootAllocator(Long.MAX_VALUE);
+  private static final BufferAllocator BUFFER_ALLOCATOR = new RootAllocator(Long.MAX_VALUE);
 
   @Test
   public void testBasic() throws Exception {
@@ -53,7 +50,7 @@ public class TestRleIntValuesReader {
 
   private RunLengthBitPackingHybridValuesWriter getEncoder(
       int bitWidth, int initialCapacity, int pageSize) {
-    return new RunLengthBitPackingHybridValuesWriter(bitWidth, initialCapacity,
-        pageSize, ALLOCATOR);
+    return new RunLengthBitPackingHybridValuesWriter(
+        bitWidth, initialCapacity, pageSize, ALLOCATOR);
   }
 }

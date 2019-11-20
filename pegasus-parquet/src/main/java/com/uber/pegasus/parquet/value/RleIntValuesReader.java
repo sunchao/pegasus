@@ -7,6 +7,7 @@ public class RleIntValuesReader extends AbstractRleValuesReader<IntVector> {
   public RleIntValuesReader(BufferAllocator allocator) {
     super(allocator);
   }
+
   public RleIntValuesReader(BufferAllocator allocator, int bitWidth) {
     super(allocator, bitWidth);
   }

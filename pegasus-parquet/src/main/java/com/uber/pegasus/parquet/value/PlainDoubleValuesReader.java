@@ -1,9 +1,8 @@
 package com.uber.pegasus.parquet.value;
 
 import io.netty.buffer.ArrowBuf;
-import org.apache.arrow.vector.Float8Vector;
-
 import java.nio.ByteBuffer;
+import org.apache.arrow.vector.Float8Vector;
 
 public class PlainDoubleValuesReader extends AbstractPlainValuesReader<Float8Vector> {
   @Override
