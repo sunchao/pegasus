@@ -209,13 +209,6 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
 
     // create def & rep level decoders to init input stream
     int bitWidth = BytesUtils.getWidthFromMaxInt(desc.getMaxDefinitionLevel());
-<<<<<<< HEAD
-=======
-    org.apache.parquet.column.values.ValuesReader rlReader =
-        page.getRlEncoding().getValuesReader(desc, ValuesType.REPETITION_LEVEL);
-    org.apache.parquet.column.values.ValuesReader dlReader =
-        new LevelsReader<V>(allocator, bitWidth);
->>>>>>> Fix format issue
 
     BytesInput bytes = page.getBytes();
     ByteBufferInputStream in = bytes.toInputStream();
