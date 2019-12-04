@@ -4,16 +4,27 @@ def hiveVersion = "2.3.4"
 
 dependencies {
     implementation project(':pegasus-api')
-    implementation("org.apache.hive:hive-service:${hiveVersion}") {
-        exclude group: 'org.apache.hive', module: 'hive-llap-server'
-        exclude group: 'org.apache.hive', module: 'hive-llap-client'
-        exclude group: 'org.apache.hive', module: 'hive-llap-tez'
-        exclude group: 'org.apache.logging.log4j', module: 'log4j-1.2-api'
-        exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
-        exclude group: 'ch.qos.logback', module: 'logback-classic'
-        exclude group: 'ch.qos.logback', module: 'logback-core'
-        exclude group: 'com.google.guava', module: 'guava'
+    implementation project(':pegasus-common')
 
-        exclude group: 'io.netty', module: 'netty-all'
+    // needed for HiveConf
+    implementation("org.apache.hive:hive-common:${hiveVersion}") {
+        exclude group: 'org.apache.hive.shims', module: 'hive-shims-0.23'
+        exclude group: 'org.apache.hive.shims', module: 'hive-shims-common'
+        exclude group: 'org.apache.curator', module: 'curator-framework'
+        exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+    }
+    // needed by hive-metastore
+    implementation("org.apache.hive:hive-exec:${hiveVersion}:core") {
+        exclude group: 'org.apache.hive', module: 'hive-llap-tez'
+        exclude group: 'org.apache.calcite', module: 'calcite-core'
+        exclude group: 'org.apache.calcite', module: 'calcite-druid'
+        exclude group: 'org.apache.calcite.avatica', module: 'avatica'
+        exclude group: 'org.apache.curator', module: 'curator-framework'
+        exclude group: 'org.apache.curator', module: 'apache-curator'
+        exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+    }
+    implementation("org.apache.hive:hive-metastore:${hiveVersion}") {
+        exclude group: 'org.apache.hbase', module: 'hbase-client'
+        exclude group: 'com.google.guava', module: 'guava'
     }
 }

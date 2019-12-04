@@ -1,11 +1,7 @@
 <configuration>
   <property>
-    <name>hive.support.concurrency</name>
-    <value>true</value>
-  </property>
-  <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:postgresql://postgres:5432/metastore</value>
+    <value>jdbc:postgresql://localhost:5432/metastore</value>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionDriverName</name>
@@ -13,11 +9,11 @@
   </property>
   <property>
     <name>javax.jdo.option.ConnectionUserName</name>
-    <value>postgres</value>
+    <value>hive</value>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionPassword</name>
-    <value>postgres</value>
+    <value>hive</value>
   </property>
   <property>
     <name>datanucleus.autoCreateSchema</name>
@@ -29,10 +25,18 @@
   </property>
   <property>
     <name>hive.metastore.uris</name>
-    <value>thrift://localhost:9083</value>
+    <value>thrift://hive-box:9083</value>
   </property>
   <property>
     <name>hive.metastore.schema.verification</name>
     <value>true</value>
+  </property>
+  <property>
+    <name>hive.server2.transport.mode</name>
+    <value>binary</value>
+  </property>
+  <property>
+    <name>hive.server2.thrift.port</name>
+    <value>10000</value>
   </property>
 </configuration>

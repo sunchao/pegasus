@@ -2,4 +2,5 @@ description = 'Pegasus Worker'
 
 dependencies {
     implementation project(':pegasus-api')
+    implementation project(':pegasus-common')
 }

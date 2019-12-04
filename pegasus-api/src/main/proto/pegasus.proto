@@ -1,56 +1,11 @@
 syntax = "proto3";
 
+import "types.proto";
+import "internal.proto";
+
 package com.uber.pegasus.proto;
 
-enum TypeId {
-  // Boolean type: true or false
-  BOOLEAN = 0;
-  // 1-byte (signed) integer
-  TINYINT = 1;
-  // 2-byte (signed) integer
-  SMALLINT = 2;
-  // 4-byte (signed) integer
-  INT = 3;
-  // 8-byte (signed) integer
-  BIGINT = 4;
-  // IEEE floating point number
-  FLOAT = 5;
-  // IEEE double precision float point number
-  DOUBLE = 6;
-  // Variable length byte array
-  STRING = 7;
-  // Fixed length byte array
-  CHAR = 8;
-  // Fixed point decimal value
-  DECIMAL = 9;
-  // Exact timestamp encoded with int64 since UNIX epoch
-  TIMESTAMP = 10;
-}
-
-// Type specification, containing the type ID enum as well as any
-// additional parameters the type may need.
-message Type {
-  // The ID for this type
-  TypeId id = 1;
-
-  // Only set if id == DECIMAL
-  int32 precision = 2;
-  int32 scale = 3;
-
-  // Only set if id == CHAR
-  int32 len = 4;
-}
-
-// Description for a column metadata
-message ColumnDesc {
-  Type type = 1;
-  string name = 2;
-}
-
-// Representation of schema for data sources supported by Pegasus
-message Schema {
-  repeated ColumnDesc cols = 1;
-}
+// This defines the interfaces between Pegasus service and external clients.
 
 // Serialized columnar data, in Arrow format. Each column is a contiguous
 // byte buffer.
@@ -60,37 +15,49 @@ message ColumnData {
 
   // The serialized data in Arrow format
   bytes data = 2;
+
+  // TODO: this needs to be changed for nested types
 }
 
-message GetVersionResponse {
-  string version = 1;
-}
 
 // A structured plan request
 message StructuredRequest {
   message ColumnHandle {
     // The name for the column
     string name = 1;
-
-    // TODO: predicates, aggregations, expressions, etc.
   }
 
   // The name for the table to be scanned
-  string table_name = 1;
+  string database_name = 1;
+  string table_name = 2;
 
   // A list of columns to be scanned from the table
-  repeated ColumnHandle columns = 2;
+  repeated ColumnHandle columns = 3;
+
+  // TODO: predicates, aggregations, expressions, etc.
 }
 
 // Type of planning request - currently only a structured request.
 enum RequestType {
-  // Request with a list of columns associated with associated information
+  // Request with a list of columns associated with information
   STRUCTURE = 0;
-  // Request specified in the format of an arbitrafy SQL statement, e.g.,
-  // "SELECT c1, c2 FROM table WHERE c3 > 100"
-  // SQL = 2;
-  // Request in the form of a path URL, e.g., "hdfs:///user/foo/directory"
-  // PATH = 3;
+}
+
+// A scan task for a Pegasus worker to execute
+message Task {
+  // TODO: could replace this with indice into the `hosts` in `PlanResponse`.
+  repeated com.uber.pegasus.proto.internal.NetworkAddress local_hosts = 1;
+
+  // A opaque blob produced by Pegasus master and passed to Pegasus worker
+  bytes task = 2;
+}
+
+message GetSchemaResponse {
+  com.uber.pegasus.proto.type.Schema schema = 1;
+}
+
+message GetVersionResponse {
+  string version = 1;
 }
 
 // Request send to Pegasus master for reading data from a particular source.
@@ -103,29 +70,12 @@ message PlanRequest {
 
 message PlanResponse {
   repeated Task tasks = 1;
-  Schema schema = 2;
+  // The schema for the input columns
+  com.uber.pegasus.proto.type.Schema schema = 2;
   int64 request_id = 3;
+  // The list of hosts running workers
+  repeated com.uber.pegasus.proto.internal.NetworkAddress hosts = 4;
 }
-
-
-message GetSchemaResponse {
-  Schema schema = 1;
-}
-
-// Network address specifying the host machine, used to schedule where tasks should run
-message NetworkAddress {
-  string hostname = 1;
-  int32 port = 2;
-}
-
-// A scan task for a Pegasus worker to execute
-message Task {
-  repeated NetworkAddress local_hosts = 1;
-
-  // A opaque blob produced by Pegasus master and passed to Pegasus worker
-  bytes task = 2;
-}
-
 
 message ExecTaskRequest {
   // This is produced by Pegasus master and must be passed to the worker unmodified
@@ -147,7 +97,7 @@ message ExecTaskResponse {
   int64 handle = 1;
 
   // Schema of the records returned by the `Fetch` API
-  Schema schema = 2;
+  com.uber.pegasus.proto.type.Schema schema = 2;
 }
 
 message FetchRequest {

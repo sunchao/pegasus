@@ -20,7 +20,9 @@ allprojects {
         arrowVersion = "0.14.1"
         parquetVersion = "1.10.1"
         hiveVersion = "2.3.4"
-        log4jVersion = "2.12.0"
+        zookeeperVersion = "3.5.6"
+        curatorVersion = "4.2.0"
+        log4jVersion = "2.8.2"
         hadoopVersion = "2.8.2"
         jacksonVersion = "2.9.8"
     }
@@ -68,6 +70,30 @@ subprojects {
         implementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
         implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
         implementation("org.apache.hadoop:hadoop-hdfs:${hadoopVersion}") {
+            exclude group: 'org.apache.logging.log4j', module: 'log4j-1.2-api'
+            exclude group: 'com.google.guava', module: 'guava'
+            exclude group: 'io.netty', module: 'netty-all'
+        }
+        implementation("org.apache.hadoop:hadoop-common:${hadoopVersion}") {
+            exclude group: 'org.apache.logging.log4j', module: 'log4j-1.2-api'
+            exclude group: 'com.google.guava', module: 'guava'
+            exclude group: 'io.netty', module: 'netty-all'
+            exclude group: 'org.apache.curator', module: 'curator-framework'
+            exclude group: 'org.apache.curator', module: 'curator-client'
+            exclude group: 'org.apache.curator', module: 'curator-recipes'
+            exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+        }
+        implementation("org.apache.hadoop:hadoop-auth:${hadoopVersion}") {
+            exclude group: 'org.apache.logging.log4j', module: 'log4j-1.2-api'
+            exclude group: 'com.google.guava', module: 'guava'
+            exclude group: 'io.netty', module: 'netty-all'
+            exclude group: 'org.apache.curator', module: 'curator-framework'
+            exclude group: 'org.apache.curator', module: 'curator-client'
+            exclude group: 'org.apache.curator', module: 'curator-recipes'
+            exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+        }
+        // For HiveConf, which references org.apache.hadoop.mapred.JobConf
+        implementation("org.apache.hadoop:hadoop-mapreduce-client-core:${hadoopVersion}") {
             exclude group: 'org.apache.logging.log4j', module: 'log4j-1.2-api'
             exclude group: 'com.google.guava', module: 'guava'
             exclude group: 'io.netty', module: 'netty-all'

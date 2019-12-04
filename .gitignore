@@ -19,3 +19,6 @@ target
 out/
 .gradle
 gradlew.bat
+metastore_db/
+lib/
+derby.log

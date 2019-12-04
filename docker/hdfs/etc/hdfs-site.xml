@@ -3,8 +3,4 @@
     <name>dfs.replication</name>
     <value>1</value>
   </property>
-  <property>
-    <name>pegasus.zookeeper.connectString</name>
-    <value>zk-box:2181</value>
-  </property>
 </configuration>

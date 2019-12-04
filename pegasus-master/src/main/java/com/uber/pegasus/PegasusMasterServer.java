@@ -10,19 +10,14 @@ import org.apache.logging.log4j.Logger;
 public class PegasusMasterServer implements AutoCloseable {
   private static final Logger LOG = LogManager.getLogger(PegasusMasterServer.class);
 
-  private final int port;
   private final Server server;
 
   public PegasusMasterServer(int port) {
-    this.port = port;
-
     // TODO: many more configurations on this!
     this.server = NettyServerBuilder.forPort(port).addService(new PegasusMasterService()).build();
   }
 
   public PegasusMasterServer(InetSocketAddress ss) {
-    this.port = ss.getPort();
-
     this.server = NettyServerBuilder.forAddress(ss).addService(new PegasusMasterService()).build();
   }
 

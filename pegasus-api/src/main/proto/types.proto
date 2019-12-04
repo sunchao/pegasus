@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package com.uber.pegasus.proto.type;
+
+enum TypeId {
+  // Boolean type: true or false
+  BOOLEAN = 0;
+  // 1-byte (signed) integer
+  TINYINT = 1;
+  // 2-byte (signed) integer
+  SMALLINT = 2;
+  // 4-byte (signed) integer
+  INT = 3;
+  // 8-byte (signed) integer
+  BIGINT = 4;
+  // IEEE floating point number
+  FLOAT = 5;
+  // IEEE double precision float point number
+  DOUBLE = 6;
+  // Variable length byte array
+  STRING = 7;
+  // Fixed length byte array
+  CHAR = 8;
+  // Fixed point decimal value
+  DECIMAL = 9;
+  // Exact timestamp encoded with int64 since UNIX epoch
+  TIMESTAMP = 10;
+}
+
+// Type specification, containing the type ID enum as well as any
+// additional parameters the type may need.
+message Type {
+  // The ID for this type
+  TypeId id = 1;
+
+  // Only set if id == DECIMAL
+  int32 precision = 2;
+  int32 scale = 3;
+
+  // Only set if id == CHAR
+  int32 len = 4;
+}
+
+// Description for a column metadata
+message ColumnDesc {
+  Type type = 1;
+  string name = 2;
+}
+
+// Representation of schema for data sources supported by Pegasus
+message Schema {
+  repeated ColumnDesc cols = 1;
+}
