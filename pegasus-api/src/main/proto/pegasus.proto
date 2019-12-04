@@ -1,45 +1,10 @@
+
+
 syntax = "proto3";
 
 package com.uber.pegasus.proto;
 
-enum TypeId {
-  // Boolean type: true or false
-  BOOLEAN = 0;
-  // 1-byte (signed) integer
-  TINYINT = 1;
-  // 2-byte (signed) integer
-  SMALLINT = 2;
-  // 4-byte (signed) integer
-  INT = 3;
-  // 8-byte (signed) integer
-  BIGINT = 4;
-  // IEEE floating point number
-  FLOAT = 5;
-  // IEEE double precision float point number
-  DOUBLE = 6;
-  // Variable length byte array
-  STRING = 7;
-  // Fixed length byte array
-  CHAR = 8;
-  // Fixed point decimal value
-  DECIMAL = 9;
-  // Exact timestamp encoded with int64 since UNIX epoch
-  TIMESTAMP = 10;
-}
-
-// Type specification, containing the type ID enum as well as any
-// additional parameters the type may need.
-message Type {
-  // The ID for this type
-  TypeId id = 1;
-
-  // Only set if id == DECIMAL
-  int32 precision = 2;
-  int32 scale = 3;
-
-  // Only set if id == CHAR
-  int32 len = 4;
-}
+// This defines the interfaces between Pegasus service and external clients.
 
 // Description for a column metadata
 message ColumnDesc {
@@ -62,35 +27,43 @@ message ColumnData {
   bytes data = 2;
 }
 
-message GetVersionResponse {
-  string version = 1;
-}
 
 // A structured plan request
 message StructuredRequest {
   message ColumnHandle {
     // The name for the column
     string name = 1;
-
     // TODO: predicates, aggregations, expressions, etc.
   }
 
   // The name for the table to be scanned
-  string table_name = 1;
+  string database_name = 1;
+  string table_name = 2;
 
   // A list of columns to be scanned from the table
-  repeated ColumnHandle columns = 2;
-}
+  repeated ColumnHandle columns = 3;
+
 
 // Type of planning request - currently only a structured request.
 enum RequestType {
-  // Request with a list of columns associated with associated information
+  // Request with a list of columns associated with information
   STRUCTURE = 0;
-  // Request specified in the format of an arbitrafy SQL statement, e.g.,
-  // "SELECT c1, c2 FROM table WHERE c3 > 100"
-  // SQL = 2;
-  // Request in the form of a path URL, e.g., "hdfs:///user/foo/directory"
-  // PATH = 3;
+}
+
+// A scan task for a Pegasus worker to execute
+message Task {
+  repeated NetworkAddress local_hosts = 1;
+
+  // A opaque blob produced by Pegasus master and passed to Pegasus worker
+  bytes task = 2;
+}
+
+message GetSchemaResponse {
+  Schema schema = 1;
+}
+
+message GetVersionResponse {
+  string version = 1;
 }
 
 // Request send to Pegasus master for reading data from a particular source.
@@ -106,26 +79,6 @@ message PlanResponse {
   Schema schema = 2;
   int64 request_id = 3;
 }
-
-
-message GetSchemaResponse {
-  Schema schema = 1;
-}
-
-// Network address specifying the host machine, used to schedule where tasks should run
-message NetworkAddress {
-  string hostname = 1;
-  int32 port = 2;
-}
-
-// A scan task for a Pegasus worker to execute
-message Task {
-  repeated NetworkAddress local_hosts = 1;
-
-  // A opaque blob produced by Pegasus master and passed to Pegasus worker
-  bytes task = 2;
-}
-
 
 message ExecTaskRequest {
   // This is produced by Pegasus master and must be passed to the worker unmodified
