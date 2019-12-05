@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "types.proto";
 import "internal.proto";
 
 package com.uber.pegasus.proto;
@@ -45,14 +46,14 @@ enum RequestType {
 // A scan task for a Pegasus worker to execute
 message Task {
   // TODO: could replace this with indice into the `hosts` in `PlanResponse`.
-  repeated NetworkAddress local_hosts = 1;
+  repeated com.uber.pegasus.proto.internal.NetworkAddress local_hosts = 1;
 
   // A opaque blob produced by Pegasus master and passed to Pegasus worker
   bytes task = 2;
 }
 
 message GetSchemaResponse {
-  Schema schema = 1;
+  com.uber.pegasus.proto.type.Schema schema = 1;
 }
 
 message GetVersionResponse {
@@ -70,10 +71,10 @@ message PlanRequest {
 message PlanResponse {
   repeated Task tasks = 1;
   // The schema for the input columns
-  Schema schema = 2;
+  com.uber.pegasus.proto.type.Schema schema = 2;
   int64 request_id = 3;
   // The list of hosts running workers
-  repeated NetworkAddress hosts = 4;
+  repeated com.uber.pegasus.proto.internal.NetworkAddress hosts = 4;
 }
 
 message ExecTaskRequest {
@@ -96,7 +97,7 @@ message ExecTaskResponse {
   int64 handle = 1;
 
   // Schema of the records returned by the `Fetch` API
-  Schema schema = 2;
+  com.uber.pegasus.proto.type.Schema schema = 2;
 }
 
 message FetchRequest {
