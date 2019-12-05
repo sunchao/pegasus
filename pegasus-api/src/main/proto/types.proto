@@ -41,3 +41,13 @@ message Type {
   int32 len = 4;
 }
 
+// Description for a column metadata
+message ColumnDesc {
+  Type type = 1;
+  string name = 2;
+}
+
+// Representation of schema for data sources supported by Pegasus
+message Schema {
+  repeated ColumnDesc cols = 1;
+}

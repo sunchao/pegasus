@@ -1,14 +1,12 @@
 syntax = "proto3";
 
-import "pegasus.proto";
-
 package com.uber.pegasus.proto.internal;
 
 // This defines protocols used internally by Pegasus, e.g., communications
 // between master and worker.
 
-message HdfsFileSplit {
-  // The name for the HDFS file to be scanned
+message HdfsSplit {
+  // The full name of the HDFS file to be scanned
   string file_name = 1;
 
   // The starting offset
@@ -21,20 +19,20 @@ message HdfsFileSplit {
   int64 file_length = 4;
 }
 
-// Network address specifying the host machine, used to schedule where tasks should run
+// Network address to specify a host machine
 message NetworkAddress {
   string hostname = 1;
   int32 port = 2;
-}
+
 
 message ScanRange {
   repeated NetworkAddress hosts = 1;
 
   // A segment of a HDFS file to be scanned
-  HdfsFileSplit hdfs_file_split = 10;
-
+  HdfsSplit hdfs_split = 10;
 }
 
 message TaskInfo {
+  // All the scan ranges this task should process.
   repeated ScanRange scan_ranges = 1;
 }

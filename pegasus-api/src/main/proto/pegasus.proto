@@ -1,21 +1,10 @@
-
-
 syntax = "proto3";
+
+import "internal.proto";
 
 package com.uber.pegasus.proto;
 
 // This defines the interfaces between Pegasus service and external clients.
-
-// Description for a column metadata
-message ColumnDesc {
-  Type type = 1;
-  string name = 2;
-}
-
-// Representation of schema for data sources supported by Pegasus
-message Schema {
-  repeated ColumnDesc cols = 1;
-}
 
 // Serialized columnar data, in Arrow format. Each column is a contiguous
 // byte buffer.
@@ -25,6 +14,8 @@ message ColumnData {
 
   // The serialized data in Arrow format
   bytes data = 2;
+
+  // TODO: this needs to be changed for nested types
 }
 
 
@@ -33,7 +24,6 @@ message StructuredRequest {
   message ColumnHandle {
     // The name for the column
     string name = 1;
-    // TODO: predicates, aggregations, expressions, etc.
   }
 
   // The name for the table to be scanned
@@ -43,6 +33,8 @@ message StructuredRequest {
   // A list of columns to be scanned from the table
   repeated ColumnHandle columns = 3;
 
+  // TODO: predicates, aggregations, expressions, etc.
+}
 
 // Type of planning request - currently only a structured request.
 enum RequestType {
@@ -52,6 +44,7 @@ enum RequestType {
 
 // A scan task for a Pegasus worker to execute
 message Task {
+  // TODO: could replace this with indice into the `hosts` in `PlanResponse`.
   repeated NetworkAddress local_hosts = 1;
 
   // A opaque blob produced by Pegasus master and passed to Pegasus worker
@@ -76,8 +69,11 @@ message PlanRequest {
 
 message PlanResponse {
   repeated Task tasks = 1;
+  // The schema for the input columns
   Schema schema = 2;
   int64 request_id = 3;
+  // The list of hosts running workers
+  repeated NetworkAddress hosts = 4;
 }
 
 message ExecTaskRequest {
