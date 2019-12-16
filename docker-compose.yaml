@@ -1,0 +1,44 @@
+version: '3'
+services:
+  hdfs:
+    build: docker/hdfs
+    networks:
+      - pegasus-nw
+    image: hdfs
+    ports:
+    - 9020:9020
+    - 50070:50070
+    - 50075:50075
+    - 8020:8020
+    - 8042:8042
+    container_name: hdfs-box
+    hostname: hdfs-box
+    stdin_open: true
+    tty: true
+  hive:
+    depends_on:
+      - "hdfs"
+    build:
+      context: ./docker/hive
+      dockerfile: Dockerfile
+      args:
+        - HIVE_VERSION=1.1.0
+    networks:
+      - pegasus-nw
+    container_name: hive-box
+    hostname: hive-box
+    stdin_open: true
+    image: hive
+    tty: true
+    ports:
+      - 10000:10000
+      - 9083:9083
+
+networks:
+  default:
+    external:
+      name: pegasus-nw
+  pegasus-nw:
+    driver: bridge
+
+
