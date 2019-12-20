@@ -63,6 +63,6 @@ USER root
 ADD bootstrap_hive.sh /etc/bootstrap_hive.sh
 RUN chmod 700 /etc/bootstrap_hive.sh
 
-CMD ["/etc/bootstrap_hive.sh"]
+ENTRYPOINT ["/etc/bootstrap_hive.sh"]
 
 EXPOSE 9083 10000 10002 50111

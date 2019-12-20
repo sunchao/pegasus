@@ -1,7 +1,11 @@
 version: '3'
 services:
   hdfs:
-    build: docker/hdfs
+    build:
+      context: ./docker/hdfs
+      dockerfile: Dockerfile
+      args:
+        - HDFS_VERSION=2.8.2
     networks:
       - pegasus-nw
     image: hdfs
@@ -33,6 +37,32 @@ services:
     ports:
       - 10000:10000
       - 9083:9083
+  pegasus-master:
+    depends_on:
+      - "hive"
+    build:
+      context: .
+      dockerfile: docker/pegasus/master.dockerfile
+    image: pegasus-master
+    networks:
+      - pegasus-nw
+    container_name: pegasus-master
+    hostname: pegasus-master
+    stdin_open: true
+    tty: true
+  pegasus-worker:
+    depends_on:
+      - "hive"
+    build:
+      context: .
+      dockerfile: docker/pegasus/worker.dockerfile
+    image: pegasus-worker
+    container_name: pegasus-worker
+    hostname: pegasus-worker
+    stdin_open: true
+    tty: true
+    networks:
+      - pegasus-nw
 
 networks:
   default:
@@ -40,5 +70,3 @@ networks:
       name: pegasus-nw
   pegasus-nw:
     driver: bridge
-
-

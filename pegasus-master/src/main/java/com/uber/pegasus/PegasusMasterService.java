@@ -34,12 +34,12 @@ public class PegasusMasterService extends PegasusMasterServiceGrpc.PegasusMaster
   private final HiveConf hiveConf;
 
   public PegasusMasterService() {
-    hadoopConf = new Configuration(false);
-    addResource(hadoopConf, "core-site.xml");
-    addResource(hadoopConf, "hdfs-site.xml");
+    hadoopConf = new Configuration();
+    // addResource(hadoopConf, "core-site.xml");
+    // addResource(hadoopConf, "hdfs-site.xml");
 
     hiveConf = new HiveConf();
-    addResource(hiveConf, "hive-site.xml");
+    // addResource(hiveConf, "hive-site.xml");
 
     metastoreClient = new MetastoreClient(hiveConf);
     try {
