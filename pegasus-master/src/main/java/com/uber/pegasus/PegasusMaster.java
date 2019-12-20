@@ -1,14 +1,20 @@
 package com.uber.pegasus;
 
 import java.net.InetSocketAddress;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class PegasusMaster {
-  private static final Logger LOG = LogManager.getFormatterLogger(PegasusMaster.class);
-
   public static void main(String[] args) throws Exception {
-    PegasusMasterServer master = new PegasusMasterServer(new InetSocketAddress(0));
+    if (args.length != 0 && args.length != 1) {
+      System.err.println("Usage: PegasusMaster [port]");
+      System.exit(1);
+    }
+
+    PegasusMasterServer master;
+    if (args.length == 0) {
+      master = new PegasusMasterServer(new InetSocketAddress(0));
+    } else {
+      master = new PegasusMasterServer(Integer.parseInt(args[0]));
+    }
     master.start();
     master.awaitTermination();
   }
