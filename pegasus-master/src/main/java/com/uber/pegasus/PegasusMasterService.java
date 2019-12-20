@@ -5,6 +5,7 @@ import com.uber.pegasus.proto.Pegasus;
 import com.uber.pegasus.proto.PegasusMasterServiceGrpc;
 import com.uber.pegasus.proto.internal.Internal;
 import io.grpc.stub.StreamObserver;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,14 +25,25 @@ import org.apache.thrift.TException;
 public class PegasusMasterService extends PegasusMasterServiceGrpc.PegasusMasterServiceImplBase {
   private static final Logger LOG = LogManager.getFormatterLogger(PegasusMasterService.class);
   private static final String VERSION_NO = "1";
+  private static final String CONF_ROOT = "conf";
 
   private final MetastoreClient metastoreClient;
   private final FileSystem fs;
 
-  public PegasusMasterService(HiveConf hiveConf, Configuration conf) {
+  private final Configuration hadoopConf;
+  private final HiveConf hiveConf;
+
+  public PegasusMasterService() {
+    hadoopConf = new Configuration(false);
+    addResource(hadoopConf, "core-site.xml");
+    addResource(hadoopConf, "hdfs-site.xml");
+
+    hiveConf = new HiveConf();
+    addResource(hiveConf, "hive-site.xml");
+
     metastoreClient = new MetastoreClient(hiveConf);
     try {
-      fs = FileSystem.get(conf);
+      fs = FileSystem.get(hadoopConf);
     } catch (IOException ioe) {
       LOG.fatal("Could not initialize file system", ioe);
       throw new RuntimeException(ioe);
@@ -135,5 +147,15 @@ public class PegasusMasterService extends PegasusMasterServiceGrpc.PegasusMaster
     }
 
     return result;
+  }
+
+  private void addResource(Configuration conf, String fileName) {
+    String resource = String.join("/", CONF_ROOT, fileName);
+    LOG.info("Loading configuration file {}", fileName);
+    try {
+      conf.addResource(new FileInputStream(resource));
+    } catch (FileNotFoundException fnfe) {
+      throw new RuntimeException("Cannot locate file " + fileName);
+    }
   }
 }
