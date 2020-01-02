@@ -1,0 +1,8 @@
+description = 'Pegasus Common'
+
+dependencies {
+    implementation "org.apache.zookeeper:zookeeper:${zookeeperVersion}"
+    implementation "org.apache.curator:curator-framework:${curatorVersion}"
+
+    testImplementation "org.apache.curator:curator-test:${curatorVersion}"
+}

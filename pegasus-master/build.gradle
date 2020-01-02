@@ -4,6 +4,7 @@ def hiveVersion = "2.3.4"
 
 dependencies {
     implementation project(':pegasus-api')
+    implementation project(':pegasus-common')
 
     // needed for HiveConf
     implementation("org.apache.hive:hive-common:${hiveVersion}") {

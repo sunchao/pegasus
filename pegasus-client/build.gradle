@@ -2,4 +2,5 @@ description = 'Pegasus Client'
 
 dependencies {
     implementation project(':pegasus-api')
+    implementation project(':pegasus-common')
 }
