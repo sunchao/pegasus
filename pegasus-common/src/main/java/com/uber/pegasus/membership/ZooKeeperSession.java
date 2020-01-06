@@ -153,9 +153,10 @@ public class ZooKeeperSession implements Closeable {
   }
 
   private void ensurePath(String path, List<ACL> acls) throws IOException {
-    try {
       CuratorFramework zk = getSession();
-    }
+  }
 
+  private void initMembershipPaths() {
+    throw new UnsupportedOperationException();
   }
 }
