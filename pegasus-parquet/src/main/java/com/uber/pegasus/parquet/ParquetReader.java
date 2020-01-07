@@ -22,6 +22,7 @@ import org.apache.parquet.schema.OriginalType;
 
 public class ParquetReader implements AutoCloseable {
   private static final int MAX_VECTOR_LENGTH = 1024;
+
   protected final AbstractColumnReader[] columnReaders;
   private final BufferAllocator bufferAllocator;
   private final List<BlockMetaData> blocks;
@@ -56,6 +57,7 @@ public class ParquetReader implements AutoCloseable {
     return true;
   }
 
+  @SuppressWarnings("unchecked")
   public List<ValueVector> readNext() throws IOException {
     List<ValueVector> output = new ArrayList<>();
 
@@ -111,6 +113,7 @@ public class ParquetReader implements AutoCloseable {
     return true;
   }
 
+  @SuppressWarnings("deprecation")
   private ColumnChunkMetaData getColumnChunkMetaData(ColumnDescriptor columnDescriptor) {
     for (ColumnChunkMetaData metadata : currentRowGroupMetadata.getColumns()) {
       if (metadata.getPath().equals(ColumnPath.get(columnDescriptor.getPath()))) {
