@@ -4,11 +4,11 @@ import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PegasusWorkerServer implements AutoCloseable {
-  private static final Logger LOG = LogManager.getFormatterLogger(PegasusWorkerServer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PegasusWorkerServer.class);
 
   private final Server server;
 
@@ -24,7 +24,7 @@ public class PegasusWorkerServer implements AutoCloseable {
 
   public void start() throws IOException {
     server.start();
-    LOG.info("Server started, listening on " + server.getPort());
+    LOG.info("Server started, listening on {}", server.getPort());
   }
 
   public void awaitTermination() throws InterruptedException {

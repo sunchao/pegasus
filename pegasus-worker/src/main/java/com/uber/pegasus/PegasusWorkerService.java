@@ -9,11 +9,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PegasusWorkerService extends PegasusWorkerGrpc.PegasusWorkerImplBase {
-  private static final Logger LOG = LogManager.getFormatterLogger(PegasusWorkerService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PegasusWorkerService.class);
 
   private static final String CONF_ROOT = "conf";
 
@@ -29,7 +29,7 @@ public class PegasusWorkerService extends PegasusWorkerGrpc.PegasusWorkerImplBas
       InetAddress host = InetAddress.getLocalHost();
       zkSession = new ZooKeeperSession(conf, host.getHostName() + ":" + port, -1, 15000);
     } catch (IOException e) {
-      LOG.fatal("Could not initialize ZK session", e);
+      LOG.error("Could not initialize ZK session", e);
       throw new RuntimeException(e);
     }
   }
