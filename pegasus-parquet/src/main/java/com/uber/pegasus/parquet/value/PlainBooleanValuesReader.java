@@ -1,11 +1,15 @@
 package com.uber.pegasus.parquet.value;
 
 import org.apache.arrow.vector.BitVector;
+import org.apache.parquet.column.values.bitpacking.ByteBitPackingValuesReader;
+import org.apache.parquet.column.values.bitpacking.Packer;
 
 public class PlainBooleanValuesReader extends AbstractPlainValuesReader<BitVector> {
+  private ByteBitPackingValuesReader in = new ByteBitPackingValuesReader(1, Packer.LITTLE_ENDIAN);
+
   @Override
   public void read(BitVector c, int rowId) {
-    throw new UnsupportedOperationException();
+    c.set(rowId, in.readInteger());
   }
 
   @Override
@@ -15,6 +19,6 @@ public class PlainBooleanValuesReader extends AbstractPlainValuesReader<BitVecto
 
   @Override
   public boolean readBoolean() {
-    throw new UnsupportedOperationException();
+    return in.readInteger() == 0 ? false : true;
   }
 }
