@@ -22,4 +22,8 @@ public abstract class AbstractPlainValuesReader<V extends ValueVector> extends V
       throw new ParquetDecodingException("Failed to read " + length + " bytes", e);
     }
   }
+
+  public long position() {
+    return in.position();
+  }
 }

@@ -8,6 +8,7 @@ import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BigIntVector;
 import org.apache.arrow.vector.BitVectorHelper;
+import org.apache.arrow.vector.FixedSizeBinaryVector;
 import org.apache.arrow.vector.Float4Vector;
 import org.apache.arrow.vector.Float8Vector;
 import org.apache.arrow.vector.IntVector;
@@ -15,7 +16,10 @@ import org.apache.arrow.vector.ValueVector;
 import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.bytes.DirectByteBufferAllocator;
+import org.apache.parquet.column.values.ValuesWriter;
+import org.apache.parquet.column.values.plain.FixedLenByteArrayPlainValuesWriter;
 import org.apache.parquet.column.values.plain.PlainValuesWriter;
+import org.apache.parquet.io.api.Binary;
 import org.junit.Test;
 
 public class TestPlainValuesReader {
@@ -109,12 +113,39 @@ public class TestPlainValuesReader {
     }
   }
 
+  @Test
+  public void testFixedLenByteArrayBasic() throws IOException {
+    Binary[] expected = new Binary[SIZE];
+    for (int i = 0; i < SIZE; i++) {
+      expected[i] =
+          Binary.fromConstantByteArray(new byte[] {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07});
+    }
+
+    int length = expected[0].length();
+    FixedLenByteArrayPlainValuesWriter writer = getFixedLenByteArrayValuesWriter(length);
+    PlainFixedLenByteArrayValuesReader reader = new PlainFixedLenByteArrayValuesReader(length);
+    FixedSizeBinaryVector out = new FixedSizeBinaryVector("test", BUFFER_ALLOCATOR, length);
+    for (Binary v : expected) {
+      writer.writeBytes(v);
+    }
+
+    process(writer, reader, out);
+
+    for (int i = 0; i < expected.length; i++) {
+      assertEquals(expected[i], Binary.fromConstantByteArray(out.get(i)));
+    }
+  }
+
   private static PlainValuesWriter getValuesWriter() {
     return new PlainValuesWriter(INITIAL_CAPACITY, PAGE_SIZE, ALLOCATOR);
   }
 
+  private static FixedLenByteArrayPlainValuesWriter getFixedLenByteArrayValuesWriter(int length) {
+    return new FixedLenByteArrayPlainValuesWriter(length, INITIAL_CAPACITY, PAGE_SIZE, ALLOCATOR);
+  }
+
   private static <V extends ValueVector> void process(
-      PlainValuesWriter writer, AbstractPlainValuesReader<V> reader, V out) throws IOException {
+      ValuesWriter writer, AbstractPlainValuesReader<V> reader, V out) throws IOException {
     ByteBuffer buf = writer.getBytes().toByteBuffer();
     ByteBufferInputStream in = ByteBufferInputStream.wrap(buf);
     reader.initFromPage(SIZE, in);
