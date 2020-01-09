@@ -13,6 +13,7 @@ import org.apache.arrow.vector.Float4Vector;
 import org.apache.arrow.vector.Float8Vector;
 import org.apache.arrow.vector.IntVector;
 import org.apache.arrow.vector.ValueVector;
+import org.apache.arrow.vector.VarBinaryVector;
 import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.bytes.DirectByteBufferAllocator;
@@ -129,6 +130,31 @@ public class TestPlainValuesReader {
       writer.writeBytes(v);
     }
 
+    process(writer, reader, out);
+
+    for (int i = 0; i < expected.length; i++) {
+      assertEquals(expected[i], Binary.fromConstantByteArray(out.get(i)));
+    }
+  }
+
+  @Test
+  public void testBinaryBasic() throws IOException {
+    Binary[] expected = new Binary[SIZE];
+    for (int i = 0; i < SIZE; i++) {
+      int length = i + 1;
+      byte[] data = new byte[length];
+      for (int j = 0; j < length; j++) {
+        data[j] = (byte) (j + 1);
+      }
+      expected[i] = Binary.fromConstantByteArray(data);
+    }
+
+    PlainValuesWriter writer = getValuesWriter();
+    PlainBinaryValuesReader reader = new PlainBinaryValuesReader();
+    VarBinaryVector out = new VarBinaryVector("test", BUFFER_ALLOCATOR);
+    for (int i = 0; i < SIZE; i++) {
+      writer.writeBytes(expected[i]);
+    }
     process(writer, reader, out);
 
     for (int i = 0; i < expected.length; i++) {
