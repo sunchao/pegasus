@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BigIntVector;
+import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.BitVectorHelper;
 import org.apache.arrow.vector.FixedSizeBinaryVector;
 import org.apache.arrow.vector.Float4Vector;
@@ -18,6 +19,7 @@ import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.bytes.DirectByteBufferAllocator;
 import org.apache.parquet.column.values.ValuesWriter;
+import org.apache.parquet.column.values.plain.BooleanPlainValuesWriter;
 import org.apache.parquet.column.values.plain.FixedLenByteArrayPlainValuesWriter;
 import org.apache.parquet.column.values.plain.PlainValuesWriter;
 import org.apache.parquet.io.api.Binary;
@@ -115,6 +117,27 @@ public class TestPlainValuesReader {
   }
 
   @Test
+  public void testBooleanBasic() throws IOException {
+    boolean[] expected = new boolean[SIZE];
+    for (int i = 0; i < SIZE; i++) {
+      expected[i] = (i % 2 == 0) ? true : false;
+    }
+
+    BooleanPlainValuesWriter writer = getBooleanValuesWriter();
+    PlainBooleanValuesReader reader = new PlainBooleanValuesReader();
+    BitVector out = new BitVector("test", BUFFER_ALLOCATOR);
+    for (boolean v : expected) {
+      writer.writeBoolean(v);
+    }
+
+    process(writer, reader, out);
+
+    for (int i = 0; i < expected.length; i++) {
+      assertEquals(expected[i], out.get(i) == 1 ? true : false);
+    }
+  }
+
+  @Test
   public void testFixedLenByteArrayBasic() throws IOException {
     Binary[] expected = new Binary[SIZE];
     for (int i = 0; i < SIZE; i++) {
@@ -168,6 +191,10 @@ public class TestPlainValuesReader {
 
   private static FixedLenByteArrayPlainValuesWriter getFixedLenByteArrayValuesWriter(int length) {
     return new FixedLenByteArrayPlainValuesWriter(length, INITIAL_CAPACITY, PAGE_SIZE, ALLOCATOR);
+  }
+
+  private static BooleanPlainValuesWriter getBooleanValuesWriter() {
+    return new BooleanPlainValuesWriter();
   }
 
   private static <V extends ValueVector> void process(
