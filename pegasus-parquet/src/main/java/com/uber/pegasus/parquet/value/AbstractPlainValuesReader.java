@@ -11,7 +11,7 @@ public abstract class AbstractPlainValuesReader<V extends ValueVector> extends V
   private ByteBufferInputStream in;
 
   @Override
-  public void initFromPage(int valueCount, ByteBufferInputStream in) {
+  public void initFromPage(int valueCount, ByteBufferInputStream in) throws IOException {
     this.in = in;
   }
 
