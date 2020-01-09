@@ -22,7 +22,8 @@ allprojects {
         hiveVersion = "2.3.4"
         zookeeperVersion = "3.5.6"
         curatorVersion = "4.2.0"
-        log4jVersion = "2.8.2"
+        log4jVersion = "2.13.0"
+        slf4jVersion = "1.7.25"
         hadoopVersion = "2.8.2"
         jacksonVersion = "2.9.8"
     }
@@ -67,8 +68,10 @@ allprojects {
 
 subprojects {
     dependencies {
-        implementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
-        implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+        // Logging (SJF4J/LOG4J)
+        implementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+        implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+
         implementation("org.apache.hadoop:hadoop-hdfs:${hadoopVersion}") {
             exclude group: 'org.apache.logging.log4j', module: 'log4j-1.2-api'
             exclude group: 'com.google.guava', module: 'guava'

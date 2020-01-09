@@ -25,14 +25,14 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.ACL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ZooKeeperSession implements Membership, Closeable {
-  private static final Logger LOG = LogManager.getFormatterLogger(ZooKeeperSession.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ZooKeeperSession.class);
 
   private static final String ZK_CONNECTION_STRING_KEY = "pegasus.zookeeper.connectString";
   private static final String ZK_CONNECTION_TIMEOUT_MILLIS_KEY =
@@ -98,14 +98,12 @@ public class ZooKeeperSession implements Membership, Closeable {
 
   public ZooKeeperSession(Configuration conf, String id, int masterPort, int workerPort)
       throws IOException {
-    LOG.info("Get here");
     this.id = id;
     this.masterPort = masterPort;
     this.workerPort = workerPort;
 
     this.zkConnectString = conf.get(ZK_CONNECTION_STRING_KEY);
     if (zkConnectString == null || zkConnectString.trim().isEmpty()) {
-      LOG.info("ZK connect string not found");
       throw new IllegalArgumentException(
           "ZooKeeper connection string has to be specified through " + ZK_CONNECTION_STRING_KEY);
     }
@@ -136,7 +134,7 @@ public class ZooKeeperSession implements Membership, Closeable {
         int port = uri.getPort() == -1 ? 0 : uri.getPort();
         result.add(new InetSocketAddress(uri.getHost(), port));
       } catch (URISyntaxException e) {
-        LOG.warn("Error when parsing " + address, e);
+        LOG.warn("Error when parsing {}", address, e);
       }
     }
     return result;
@@ -242,7 +240,7 @@ public class ZooKeeperSession implements Membership, Closeable {
         .getListenable()
         .addListener(
             (CuratorFramework zk, PathChildrenCacheEvent e) -> {
-              LOG.debug("Received ZK event " + e);
+              LOG.debug("Received ZK event {}", e);
               synchronized (zkSession) {
                 // This session is no longer the active one, ignore the update.
                 if (zk != zkSession) {
@@ -315,9 +313,9 @@ public class ZooKeeperSession implements Membership, Closeable {
               .withMode(CreateMode.PERSISTENT)
               .withACL(acl)
               .forPath(path);
-      LOG.info("Path " + node + " is successfully created");
+      LOG.info("Path {} is successfully created", node);
     } catch (KeeperException.NodeExistsException e) {
-      LOG.debug("Path already exists: " + path);
+      LOG.debug("Path already exists: {}", path);
     } catch (Exception e) {
       throw new IOException("Error creating path " + path, e);
     }
@@ -327,7 +325,7 @@ public class ZooKeeperSession implements Membership, Closeable {
     CuratorFramework zk = getSession();
     try {
       zk.delete().forPath(path);
-      LOG.info("Path " + path + " has been successfully deleted");
+      LOG.info("Path {} has been successfully deleted", path);
     } catch (KeeperException.NoNodeException e) {
       // already deleted
     } catch (Exception e) {

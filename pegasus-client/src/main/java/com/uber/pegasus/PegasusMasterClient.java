@@ -5,11 +5,11 @@ import com.uber.pegasus.proto.PegasusMasterServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import java.util.concurrent.TimeUnit;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PegasusMasterClient {
-  private static final Logger LOG = LogManager.getFormatterLogger(PegasusMasterClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PegasusMasterClient.class);
 
   private final ManagedChannel channel;
   private final PegasusMasterServiceGrpc.PegasusMasterServiceBlockingStub blockingStub;

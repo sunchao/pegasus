@@ -20,12 +20,12 @@ import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PegasusMasterService extends PegasusMasterServiceGrpc.PegasusMasterServiceImplBase {
-  private static final Logger LOG = LogManager.getFormatterLogger(PegasusMasterService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PegasusMasterService.class);
   private static final String VERSION_NO = "1";
   private static final String CONF_ROOT = "conf";
 
@@ -46,14 +46,14 @@ public class PegasusMasterService extends PegasusMasterServiceGrpc.PegasusMaster
     try {
       fs = FileSystem.get(hadoopConf);
     } catch (IOException e) {
-      LOG.fatal("Could not initialize file system", e);
+      LOG.error("Could not initialize file system", e);
       throw new RuntimeException(e);
     }
     try {
       InetAddress host = InetAddress.getLocalHost();
       zkSession = new ZooKeeperSession(hadoopConf, host.getHostName(), 14000, -1);
     } catch (IOException e) {
-      LOG.fatal("Could not initialize ZK session", e);
+      LOG.error("Could not initialize ZK session", e);
       throw new RuntimeException(e);
     }
 
