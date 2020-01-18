@@ -7,15 +7,21 @@ import static java.util.Objects.requireNonNull;
 import com.uber.pegasus.parquet.column.AbstractColumnReader;
 import com.uber.pegasus.parquet.column.ColumnReaderFactory;
 import com.uber.pegasus.parquet.file.AbstractParquetDataSource;
+import com.uber.pegasus.parquet.file.HdfsParquetDataSource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.ValueVector;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.hadoop.metadata.BlockMetaData;
 import org.apache.parquet.hadoop.metadata.ColumnChunkMetaData;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
+import org.apache.parquet.hadoop.metadata.ParquetMetadata;
+import org.apache.parquet.io.ColumnIOFactory;
 import org.apache.parquet.io.MessageColumnIO;
 import org.apache.parquet.io.PrimitiveColumnIO;
 import org.apache.parquet.schema.OriginalType;
@@ -33,6 +39,16 @@ public class ParquetReader implements AutoCloseable {
   private long currentPosInRowGroup;
   private int batchSize;
   private BlockMetaData currentRowGroupMetadata;
+
+  public ParquetReader(FileSystem fs, Path file, int fileSize) throws IOException {
+    ParquetMetadata metadata = new FooterReader().readMetadata(fs, file, fileSize);
+    this.bufferAllocator = new RootAllocator();
+    this.blocks = metadata.getBlocks();
+    this.dataSource = new HdfsParquetDataSource(fs.open(file), file);
+    ColumnIOFactory factory = new ColumnIOFactory();
+    this.columns = factory.getColumnIO(metadata.getFileMetaData().getSchema()).getLeaves();
+    this.columnReaders = new AbstractColumnReader[columns.size()];
+  }
 
   public ParquetReader(
       MessageColumnIO messageColumnIO,

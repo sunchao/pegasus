@@ -20,8 +20,7 @@ COPY docker/hdfs/etc/core-site.xml $CONF_DIR
 COPY docker/hdfs/etc/hdfs-site.xml $CONF_DIR
 COPY docker/hive/etc/hive-site.xml $CONF_DIR
 
-RUN ./gradlew clean distTar && \
-  tar -xf pegasus-worker/build/distributions/pegasus-worker-assembly-*.tar --strip-components=1
+RUN tar -xf pegasus-worker/build/distributions/pegasus-worker-assembly-*.tar --strip-components=1
 
 COPY docker/pegasus/bootstrap_worker.sh /etc/bootstrap_worker.sh
 RUN chmod 700 /etc/bootstrap_worker.sh

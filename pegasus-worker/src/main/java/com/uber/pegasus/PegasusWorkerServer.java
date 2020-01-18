@@ -3,7 +3,7 @@ package com.uber.pegasus;
 import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +13,7 @@ public class PegasusWorkerServer implements AutoCloseable {
   private final Server server;
 
   public PegasusWorkerServer() {
-    this(new InetSocketAddress(0).getPort());
+    this(getFreeSocketPort());
   }
 
   public PegasusWorkerServer(int port) {
@@ -36,5 +36,19 @@ public class PegasusWorkerServer implements AutoCloseable {
     if (server != null) {
       server.shutdown();
     }
+  }
+
+  /** Get a random socket port that is currently available */
+  private static int getFreeSocketPort() {
+    int port = 0;
+    try {
+      ServerSocket s = new ServerSocket(0);
+      port = s.getLocalPort();
+      s.close();
+      return port;
+    } catch (IOException e) {
+      // Could not get a free port. Return default port 0.
+    }
+    return port;
   }
 }

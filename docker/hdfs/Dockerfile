@@ -2,7 +2,7 @@ FROM ubuntu:16.04
 
 USER root
 
-ARG HDFS_VERSION
+ARG hdfs
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y software-properties-common && \
@@ -33,9 +33,9 @@ RUN ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
 RUN cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 
 # Download jars and set up directory
-RUN curl -s https://archive.apache.org/dist/hadoop/common/hadoop-${HDFS_VERSION}/hadoop-${HDFS_VERSION}.tar.gz \
+RUN curl -s https://archive.apache.org/dist/hadoop/common/hadoop-${hdfs}/hadoop-${hdfs}.tar.gz \
   | tar -xz -C /opt
-RUN cd /opt && ln -s ./hadoop-${HDFS_VERSION} hadoop
+RUN cd /opt && ln -s ./hadoop-${hdfs} hadoop
 
 # Environment variables
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64

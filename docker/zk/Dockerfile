@@ -5,20 +5,20 @@ RUN apt-get update && apt-get install -y \
   openjdk-8-jdk
 
 ARG MIRROR=http://archive.apache.org
-ARG VERSION
+ARG zookeeper
 ENV ZK_HOME=/opt/zk
 ENV ZK_CONF_DIR=$ZK_HOME/conf
 ENV ZK_DATA_DIR=/data
 ENV ZK_DATA_LOG=/datalog
 ENV ZK_LOG_DIR=/var/log/zk
 
-LABEL name="zookeeper" version=$VERSION
+LABEL name="zookeeper" version=$zookeeper
 
 RUN mkdir -p $ZK_HOME && \
   if [ ! -d $ZK_DATA_DIR ]; then mkdir -p $ZK_DATA_DIR; fi && \
   if [ ! -d $ZK_DATALOGDIR ]; then mkdir -p $ZK_DATALOGDIR; fi && \
   if [ ! -d $ZK_LOG_DIR ]; then mkdir -p $ZK_LOG_DIR; fi && \
-  wget -q -O - $MIRROR/dist/zookeeper/zookeeper-$VERSION/apache-zookeeper-$VERSION-bin.tar.gz \
+  wget -q -O - $MIRROR/dist/zookeeper/zookeeper-$zookeeper/apache-zookeeper-$zookeeper-bin.tar.gz \
   | tar -xzC $ZK_HOME --strip-components=1
 
 WORKDIR /opt/zk
