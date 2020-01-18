@@ -4,10 +4,11 @@ import java.io.IOException;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.BigIntVector;
 import org.apache.arrow.vector.BitVector;
+import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.Float4Vector;
 import org.apache.arrow.vector.Float8Vector;
 import org.apache.arrow.vector.IntVector;
-import org.apache.arrow.vector.ValueVector;
+import org.apache.arrow.vector.VarBinaryVector;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.page.PageReader;
 
@@ -36,7 +37,7 @@ public class ColumnReaderFactory {
         String.format("Type: %s not yet supported", columnDescriptor));
   }
 
-  public static ValueVector createValueVector(
+  public static FieldVector createFieldVector(
       ColumnDescriptor columnDescriptor, BufferAllocator allocator) {
     String columnName = columnDescriptor.getPath()[columnDescriptor.getPath().length - 1];
     switch (columnDescriptor.getPrimitiveType().getPrimitiveTypeName()) {
@@ -50,6 +51,8 @@ public class ColumnReaderFactory {
         return new Float4Vector(columnName, allocator);
       case DOUBLE:
         return new Float8Vector(columnName, allocator);
+      case BINARY:
+        return new VarBinaryVector(columnName, allocator);
     }
 
     throw new UnsupportedOperationException(

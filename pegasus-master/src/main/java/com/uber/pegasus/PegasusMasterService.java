@@ -5,13 +5,16 @@ import com.uber.pegasus.membership.ZooKeeperSession;
 import com.uber.pegasus.proto.Pegasus;
 import com.uber.pegasus.proto.PegasusMasterServiceGrpc;
 import com.uber.pegasus.proto.internal.Internal;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -75,14 +78,21 @@ public class PegasusMasterService extends PegasusMasterServiceGrpc.PegasusMaster
       Table tableInfo = getTableInfo(req);
       List<Pegasus.Task> tasks = generateTasks(tableInfo);
 
-      for (Pegasus.Task task : tasks) {
-        responseObserver.onNext(Pegasus.PlanResponse.newBuilder().addTasks(task).build());
-      }
+      Pegasus.PlanResponse response = Pegasus.PlanResponse.newBuilder().addAllTasks(tasks).build();
+      responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (TException e) {
       LOG.error("Error fetching table information", e);
+      responseObserver.onError(
+          Status.INTERNAL
+              .withDescription("Error fetch table information: " + e.getMessage())
+              .asRuntimeException());
     } catch (IOException e) {
       LOG.error("Error generating tasks", e);
+      responseObserver.onError(
+          Status.INTERNAL
+              .withDescription("Error generating tasks: " + e.getMessage())
+              .asRuntimeException());
     }
   }
 
@@ -109,29 +119,38 @@ public class PegasusMasterService extends PegasusMasterServiceGrpc.PegasusMaster
    * Given a table to be queried, generate a list of scan tasks to be dispatched to worker nodes.
    */
   private List<Pegasus.Task> generateTasks(Table table) throws TException, IOException {
-    List<Partition> partitions =
-        metastoreClient
-            .getClient()
-            .listPartitions(table.getDbName(), table.getTableName(), (short) -1);
+    List<Path> listLocs = new ArrayList<>();
+
+    if (table.getPartitionKeys().isEmpty()) {
+      // table is not partitioned - list the table location and get files
+      listLocs.add(new Path(table.getSd().getLocation()));
+    } else {
+      List<Partition> partitions =
+          metastoreClient
+              .getClient()
+              .listPartitions(table.getDbName(), table.getTableName(), (short) -1);
+      for (Partition part : partitions) {
+        listLocs.add(new Path(part.getSd().getLocation()));
+      }
+    }
 
     List<LocatedFileStatus> allFiles = new ArrayList<>();
-    for (Partition part : partitions) {
+    for (Path loc : listLocs) {
       // TODO: check partition format
-      Path partLoc = new Path(part.getSd().getLocation());
       try {
         // TODO: instead of listing and adding all files in a one step, we should make this
         //   concurrent and hand out tasks on the fly, utilizing the streaming API from gRpc.
-        RemoteIterator<LocatedFileStatus> locatedFiles = fs.listLocatedStatus(partLoc);
+        RemoteIterator<LocatedFileStatus> locatedFiles = fs.listLocatedStatus(loc);
         while (locatedFiles.hasNext()) {
           allFiles.add(locatedFiles.next());
         }
       } catch (FileNotFoundException e) {
         // TODO: should this be a warning instead? in Hive it is possible that a partition exist
         //   but the corresponding directory has already been removed.
-        LOG.error("Directory not found: {}", partLoc, e);
+        LOG.error("Directory not found: {}", loc, e);
         throw e;
       } catch (IOException e) {
-        LOG.error("Error when listing directory: {}", partLoc, e);
+        LOG.error("Error when listing directory: {}", loc, e);
         throw e;
       }
     }
@@ -139,6 +158,7 @@ public class PegasusMasterService extends PegasusMasterServiceGrpc.PegasusMaster
     // TODO: lots of optimizations to do. For now, we just generate one task per file without
     //   locality.
     List<Pegasus.Task> result = new ArrayList<>();
+    LOG.info("There are {} files to process", allFiles.size());
     for (LocatedFileStatus f : allFiles) {
       Internal.HdfsSplit split =
           Internal.HdfsSplit.newBuilder()
@@ -149,13 +169,27 @@ public class PegasusMasterService extends PegasusMasterServiceGrpc.PegasusMaster
               .build();
 
       Internal.ScanRange scanRange = Internal.ScanRange.newBuilder().setHdfsSplit(split).build();
-
       Internal.TaskInfo taskInfo = Internal.TaskInfo.newBuilder().addScanRanges(scanRange).build();
+      Pegasus.Task task =
+          Pegasus.Task.newBuilder()
+              .setTask(taskInfo.toByteString())
+              .addAllLocalHosts(
+                  zkSession
+                      .workers()
+                      .stream()
+                      .map(
+                          addr ->
+                              Internal.NetworkAddress.newBuilder()
+                                  .setHostname(addr.getHostName())
+                                  .setPort(addr.getPort())
+                                  .build())
+                      .collect(Collectors.toList()))
+              .build();
 
-      Pegasus.Task task = Pegasus.Task.newBuilder().setTask(taskInfo.toByteString()).build();
       result.add(task);
     }
 
+    LOG.info("There are {} tasks generated", result.size());
     return result;
   }
 

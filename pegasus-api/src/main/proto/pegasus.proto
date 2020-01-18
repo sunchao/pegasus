@@ -64,6 +64,7 @@ message GetVersionResponse {
 message PlanRequest {
   RequestType req_type = 1;
 
+
   // Structured request - only set if `req_type` == `STRUCTURE`
   StructuredRequest structured_req = 2;
 }
@@ -94,14 +95,14 @@ message ExecTaskRequest {
 
 message ExecTaskResponse {
   // A unique ID used to fetch result from the Pegasus worker
-  int64 handle = 1;
+  string handle = 1;
 
   // Schema of the records returned by the `Fetch` API
   com.uber.pegasus.proto.type.Schema schema = 2;
 }
 
 message FetchRequest {
-  int64 handle = 1;
+  string handle = 1;
 }
 
 message FetchResponse {
@@ -114,6 +115,9 @@ message FetchResponse {
 
   // The number of records in this batch
   int32 num_records = 3;
+
+  // The actual Arrow/FlatBuffer encoded message
+  bytes body = 1000;
 }
 
 message Empty {}
@@ -137,6 +141,5 @@ service PegasusWorker {
 
   // Fetch scanned batches from the worker. This may be called multiple times until the scanned
   // data is depleted.
-  // TODO: explore the streaming API from gRpc
- rpc Fetch(FetchRequest) returns (FetchResponse) {}
+ rpc Fetch(FetchRequest) returns (stream FetchResponse) {}
 }

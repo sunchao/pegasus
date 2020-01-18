@@ -5,10 +5,10 @@ USER root
 RUN apt-get update && apt-get install -y \
   gradle \
   openjdk-8-jdk \
+  vim \
   sudo
 
 COPY . /opt/pegasus
-
 WORKDIR /opt/pegasus
 
 ENV CONF_DIR /etc/conf

@@ -11,7 +11,6 @@ public class PlainBinaryValuesReader extends AbstractPlainValuesReader<VarBinary
   @Override
   public void read(VarBinaryVector c, int rowId) {
     c.set(rowId, readBytes().getBytes());
-    c.setValueCount(1);
   }
 
   @Override
@@ -27,7 +26,6 @@ public class PlainBinaryValuesReader extends AbstractPlainValuesReader<VarBinary
       ByteBuffer buffer = getBuffer(length);
       c.set(start++, buffer, buffer.position(), length);
     }
-    c.setValueCount(total);
   }
 
   @Override
