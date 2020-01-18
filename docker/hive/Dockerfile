@@ -2,7 +2,7 @@ FROM hdfs
 
 USER root
 
-ARG HIVE_VERSION
+ARG hive
 
 RUN apt-get update && \
   apt-get install -y postgresql && \
@@ -16,9 +16,9 @@ RUN groupadd -r hive && \
   usermod -a -G hive hive
 
 # Download jars and set up directory
-RUN curl -s https://archive.apache.org/dist/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz \
+RUN curl -s https://archive.apache.org/dist/hive/hive-${hive}/apache-hive-${hive}-bin.tar.gz \
   | tar -xz -C /opt
-RUN cd /opt && ln -s ./apache-hive-${HIVE_VERSION}-bin hive
+RUN cd /opt && ln -s ./apache-hive-${hive}-bin hive
 
 # Environment variables
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
@@ -52,7 +52,7 @@ RUN cd $HIVE_HOME/scripts/metastore/upgrade/postgres/ && \
   psql --command "CREATE USER hive WITH PASSWORD 'hive';" && \
   psql --command "ALTER USER hive WITH SUPERUSER;" && \
   psql --command "GRANT ALL PRIVILEGES ON DATABASE metastore TO hive;" && \
-  psql -U hive -d metastore --no-password -h localhost -f hive-schema-${HIVE_VERSION}.postgres.sql
+  psql -U hive -d metastore --no-password -h localhost -f hive-schema-${hive}.postgres.sql
 
 USER root
 

@@ -21,8 +21,7 @@ COPY docker/hdfs/etc/core-site.xml $CONF_DIR
 COPY docker/hdfs/etc/hdfs-site.xml $CONF_DIR
 COPY docker/hive/etc/hive-site.xml $CONF_DIR
 
-RUN ./gradlew clean distTar && \
-  tar -xf pegasus-master/build/distributions/pegasus-master-assembly-*.tar --strip-components=1
+RUN tar -xf pegasus-master/build/distributions/pegasus-master-assembly-*.tar --strip-components=1
 
 COPY docker/pegasus/bootstrap_master.sh /etc/bootstrap_master.sh
 RUN chmod 700 /etc/bootstrap_master.sh

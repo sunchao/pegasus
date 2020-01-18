@@ -1,11 +1,18 @@
+DC := docker-compose
+
 format:
-	./gradlew clean goJF
+	./gradlew goJF
 
 compile: format
 	./gradlew clean build
 
-assembly: format
+dist: format
 	./gradlew clean distTar
 
-docker: format
-	docker-compose rm && docker-compose build && docker-compose up -d
+.PHONY: clean docker format compile dist
+
+docker: dist
+	$(DC) rm && $(DC) build && $(DC) up -d
+
+clean:
+	$(DC) down -v
