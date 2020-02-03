@@ -1,6 +1,7 @@
 package com.uber.pegasus.parquet.column;
 
 import com.uber.pegasus.parquet.LevelsReader;
+import com.uber.pegasus.parquet.value.PlainBinaryValuesReader;
 import com.uber.pegasus.parquet.value.PlainBooleanValuesReader;
 import com.uber.pegasus.parquet.value.PlainDoubleValuesReader;
 import com.uber.pegasus.parquet.value.PlainFixedLenByteArrayValuesReader;
@@ -265,6 +266,8 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
       case FIXED_LEN_BYTE_ARRAY:
         return (ValuesReader<V>)
             new PlainFixedLenByteArrayValuesReader(desc.getPrimitiveType().getTypeLength());
+      case BINARY:
+        return (ValuesReader<V>) new PlainBinaryValuesReader();
       default:
         throw new UnsupportedOperationException(
             "Unsupported type for plain encoding: "

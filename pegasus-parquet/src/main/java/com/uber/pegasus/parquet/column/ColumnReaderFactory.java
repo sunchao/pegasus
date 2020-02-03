@@ -32,6 +32,8 @@ public class ColumnReaderFactory {
         return new FloatColumnReader(columnDescriptor, originalType, pageReader, allocator);
       case DOUBLE:
         return new DoubleColumnReader(columnDescriptor, originalType, pageReader, allocator);
+      case BINARY:
+        return new BinaryColumnReader(columnDescriptor, originalType, pageReader, allocator);
     }
 
     throw new UnsupportedOperationException(
