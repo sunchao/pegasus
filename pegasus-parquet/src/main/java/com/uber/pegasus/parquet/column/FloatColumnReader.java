@@ -6,16 +6,11 @@ import org.apache.arrow.vector.Float4Vector;
 import org.apache.arrow.vector.IntVector;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.page.PageReader;
-import org.apache.parquet.schema.OriginalType;
 
 public class FloatColumnReader extends AbstractColumnReader<Float4Vector> {
-  public FloatColumnReader(
-      ColumnDescriptor desc,
-      OriginalType originalType,
-      PageReader pageReader,
-      BufferAllocator allocator)
+  public FloatColumnReader(ColumnDescriptor desc, PageReader pageReader, BufferAllocator allocator)
       throws IOException {
-    super(desc, originalType, pageReader, allocator);
+    super(desc, pageReader, allocator);
   }
 
   @Override

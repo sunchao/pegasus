@@ -10,37 +10,33 @@ import org.apache.arrow.vector.IntVector;
 import org.apache.arrow.vector.ValueVector;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.page.PageReader;
-import org.apache.parquet.schema.OriginalType;
 
 public class ColumnReaderFactory {
   private ColumnReaderFactory() {}
 
-  public static final AbstractColumnReader createColumnReader(
-      ColumnDescriptor columnDescriptor,
-      OriginalType originalType,
-      PageReader pageReader,
-      BufferAllocator allocator)
+  public static AbstractColumnReader<?> createColumnReader(
+      ColumnDescriptor columnDescriptor, PageReader pageReader, BufferAllocator allocator)
       throws IOException {
     switch (columnDescriptor.getPrimitiveType().getPrimitiveTypeName()) {
       case BOOLEAN:
-        return new BooleanColumnReader(columnDescriptor, originalType, pageReader, allocator);
+        return new BooleanColumnReader(columnDescriptor, pageReader, allocator);
       case INT32:
-        return new IntColumnReader(columnDescriptor, originalType, pageReader, allocator);
+        return new IntColumnReader(columnDescriptor, pageReader, allocator);
       case INT64:
-        return new LongColumnReader(columnDescriptor, originalType, pageReader, allocator);
+        return new LongColumnReader(columnDescriptor, pageReader, allocator);
       case FLOAT:
-        return new FloatColumnReader(columnDescriptor, originalType, pageReader, allocator);
+        return new FloatColumnReader(columnDescriptor, pageReader, allocator);
       case DOUBLE:
-        return new DoubleColumnReader(columnDescriptor, originalType, pageReader, allocator);
+        return new DoubleColumnReader(columnDescriptor, pageReader, allocator);
       case BINARY:
-        return new BinaryColumnReader(columnDescriptor, originalType, pageReader, allocator);
+        return new BinaryColumnReader(columnDescriptor, pageReader, allocator);
     }
 
     throw new UnsupportedOperationException(
         String.format("Type: %s not yet supported", columnDescriptor));
   }
 
-  public static final ValueVector createValueVector(
+  public static ValueVector createValueVector(
       ColumnDescriptor columnDescriptor, BufferAllocator allocator) {
     String columnName = columnDescriptor.getPath()[columnDescriptor.getPath().length - 1];
     switch (columnDescriptor.getPrimitiveType().getPrimitiveTypeName()) {

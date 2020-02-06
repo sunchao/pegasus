@@ -18,7 +18,6 @@ import org.apache.parquet.hadoop.metadata.ColumnChunkMetaData;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.apache.parquet.io.MessageColumnIO;
 import org.apache.parquet.io.PrimitiveColumnIO;
-import org.apache.parquet.schema.OriginalType;
 
 public class ParquetReader implements AutoCloseable {
   private static final int MAX_VECTOR_LENGTH = 1024;
@@ -68,11 +67,7 @@ public class ParquetReader implements AutoCloseable {
         ColumnChunkMetaData metadata = getColumnChunkMetaData(columnDescriptor);
         PegasusPageReader pageReader = new PegasusPageReader(metadata, dataSource, bufferAllocator);
         columnReader =
-            ColumnReaderFactory.createColumnReader(
-                columnDescriptor,
-                OriginalType.INT_32 /*TODO: not used, delete later*/,
-                pageReader,
-                bufferAllocator);
+            ColumnReaderFactory.createColumnReader(columnDescriptor, pageReader, bufferAllocator);
         columnReaders[columnIdx] = columnReader;
       }
 

@@ -21,7 +21,6 @@ import org.apache.parquet.column.impl.ColumnWriteStoreV2;
 import org.apache.parquet.column.page.mem.MemPageStore;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
-import org.apache.parquet.schema.OriginalType;
 import org.junit.Test;
 
 public class TestColumnReader {
@@ -125,8 +124,7 @@ public class TestColumnReader {
     writeStore.flush();
 
     IntColumnReader reader =
-        new IntColumnReader(
-            desc, OriginalType.INT_32, pageStore.getPageReader(desc), BUFFER_ALLOCATOR);
+        new IntColumnReader(desc, pageStore.getPageReader(desc), BUFFER_ALLOCATOR);
     IntVector out = new IntVector("test", BUFFER_ALLOCATOR);
     out.allocateNew();
     reader.readBatch(data.size(), out);

@@ -6,16 +6,11 @@ import org.apache.arrow.vector.BitVector;
 import org.apache.arrow.vector.IntVector;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.page.PageReader;
-import org.apache.parquet.schema.OriginalType;
 
 public class BooleanColumnReader extends AbstractColumnReader<BitVector> {
   public BooleanColumnReader(
-      ColumnDescriptor desc,
-      OriginalType originalType,
-      PageReader pageReader,
-      BufferAllocator allocator)
-      throws IOException {
-    super(desc, originalType, pageReader, allocator);
+      ColumnDescriptor desc, PageReader pageReader, BufferAllocator allocator) throws IOException {
+    super(desc, pageReader, allocator);
   }
 
   @Override
