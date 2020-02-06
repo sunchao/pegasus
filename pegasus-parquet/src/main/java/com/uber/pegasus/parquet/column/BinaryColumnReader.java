@@ -7,16 +7,11 @@ import org.apache.arrow.vector.VarBinaryVector;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.page.PageReader;
 import org.apache.parquet.io.api.Binary;
-import org.apache.parquet.schema.OriginalType;
 
 public class BinaryColumnReader extends AbstractColumnReader<VarBinaryVector> {
-  public BinaryColumnReader(
-      ColumnDescriptor desc,
-      OriginalType originalType,
-      PageReader pageReader,
-      BufferAllocator allocator)
+  public BinaryColumnReader(ColumnDescriptor desc, PageReader pageReader, BufferAllocator allocator)
       throws IOException {
-    super(desc, originalType, pageReader, allocator);
+    super(desc, pageReader, allocator);
   }
 
   @Override

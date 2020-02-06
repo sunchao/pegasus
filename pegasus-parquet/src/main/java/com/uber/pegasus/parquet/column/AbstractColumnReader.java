@@ -27,7 +27,6 @@ import org.apache.parquet.column.page.DataPageV1;
 import org.apache.parquet.column.page.DataPageV2;
 import org.apache.parquet.column.page.DictionaryPage;
 import org.apache.parquet.column.page.PageReader;
-import org.apache.parquet.schema.OriginalType;
 
 /**
  * Decoder to return values from a single column. The column vector type is provided via the generic
@@ -36,7 +35,6 @@ import org.apache.parquet.schema.OriginalType;
  */
 public abstract class AbstractColumnReader<V extends ValueVector> {
   private final ColumnDescriptor desc;
-  private final OriginalType originalType;
   private final PageReader pageReader;
 
   /** If true, the current page is dictionary encoded */
@@ -76,13 +74,8 @@ public abstract class AbstractColumnReader<V extends ValueVector> {
   protected final BufferAllocator allocator;
 
   public AbstractColumnReader(
-      ColumnDescriptor desc,
-      OriginalType originalType,
-      PageReader pageReader,
-      BufferAllocator allocator)
-      throws IOException {
+      ColumnDescriptor desc, PageReader pageReader, BufferAllocator allocator) throws IOException {
     this.desc = desc;
-    this.originalType = originalType;
     this.pageReader = pageReader;
     this.maxDefLevel = desc.getMaxDefinitionLevel();
     this.allocator = allocator;
