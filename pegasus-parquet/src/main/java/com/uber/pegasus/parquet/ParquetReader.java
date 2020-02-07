@@ -11,7 +11,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.ValueVector;
+import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.hadoop.metadata.BlockMetaData;
 import org.apache.parquet.hadoop.metadata.ColumnChunkMetaData;
@@ -57,8 +58,8 @@ public class ParquetReader implements AutoCloseable {
   }
 
   @SuppressWarnings("unchecked")
-  public List<ValueVector> readNext() throws IOException {
-    List<ValueVector> output = new ArrayList<>();
+  public VectorSchemaRoot readNext() throws IOException {
+    List<FieldVector> output = new ArrayList<>();
 
     for (int columnIdx = 0; columnIdx < columns.size(); columnIdx++) {
       ColumnDescriptor columnDescriptor = columns.get(columnIdx).getColumnDescriptor();
@@ -71,18 +72,16 @@ public class ParquetReader implements AutoCloseable {
         columnReaders[columnIdx] = columnReader;
       }
 
-      ValueVector valueVector =
-          ColumnReaderFactory.createValueVector(columnDescriptor, bufferAllocator);
-      valueVector.setInitialCapacity(batchSize);
-      valueVector.allocateNew();
-      columnReader.readBatch(batchSize, valueVector);
+      FieldVector v = ColumnReaderFactory.createFieldVector(columnDescriptor, bufferAllocator);
+      v.setInitialCapacity(batchSize);
+      v.allocateNew();
+      columnReader.readBatch(batchSize, v);
 
-      output.add(valueVector);
+      output.add(v);
     }
 
     currentPosInRowGroup += batchSize;
-
-    return output;
+    return new VectorSchemaRoot(output);
   }
 
   @Override

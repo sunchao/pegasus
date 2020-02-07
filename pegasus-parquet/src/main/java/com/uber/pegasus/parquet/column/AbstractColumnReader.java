@@ -13,6 +13,7 @@ import com.uber.pegasus.parquet.value.RleIntValuesReader;
 import com.uber.pegasus.parquet.value.ValuesReader;
 import java.io.IOException;
 import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.IntVector;
 import org.apache.arrow.vector.ValueVector;
 import org.apache.parquet.bytes.ByteBufferInputStream;
@@ -33,7 +34,7 @@ import org.apache.parquet.column.page.PageReader;
  * parameter `V` and MUST be consistent with the `ColumnDescriptor` and `OriginalType` passed to the
  * constructor.
  */
-public abstract class AbstractColumnReader<V extends ValueVector> {
+public abstract class AbstractColumnReader<V extends FieldVector> {
   private final ColumnDescriptor desc;
   private final PageReader pageReader;
 
