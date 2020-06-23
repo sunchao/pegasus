@@ -1,5 +1,6 @@
 package com.uber.pegasus.parquet.value;
 
+import com.uber.pegasus.parquet.BitUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import org.apache.arrow.memory.BufferAllocator;
@@ -67,7 +68,7 @@ public abstract class AbstractRleValuesReader<V extends ValueVector> extends Val
     if (fixedWidth) {
       // initialize for repetition and definition levels
       if (readLength) {
-        int length = readIntLittleEndian();
+        int length = BitUtil.readIntLittleEndian(in);
         this.in = in.sliceStream(length);
       }
     } else {
@@ -98,7 +99,6 @@ public abstract class AbstractRleValuesReader<V extends ValueVector> extends Val
    * @param idx the offset to put the value in the vector
    */
   // abstract protected void setValue(V v, int idx);
-
   private void init(int bitWidth) {
     Preconditions.checkArgument(
         bitWidth >= 0 && bitWidth <= 32, "bitWidth must be >= 0 and <= 32, but found " + bitWidth);
@@ -125,12 +125,12 @@ public abstract class AbstractRleValuesReader<V extends ValueVector> extends Val
   /** Reads the next group. */
   protected void readNextGroup() {
     try {
-      int header = readUnsignedVarInt();
+      int header = BitUtil.readUnsignedVarInt(in);
       this.mode = (header & 1) == 0 ? Mode.RLE : Mode.PACKED;
       switch (mode) {
         case RLE:
           this.currentCount = header >>> 1;
-          this.currentValue = readIntLittleEndianPaddedOnBitWidth();
+          this.currentValue = BitUtil.readIntLittleEndianPaddedOnBitWidth(in, bytesWidth);
           return;
         case PACKED:
           int numGroups = header >>> 1;
@@ -154,55 +154,5 @@ public abstract class AbstractRleValuesReader<V extends ValueVector> extends Val
     } catch (IOException e) {
       throw new ParquetDecodingException("Failed to read from input stream", e);
     }
-  }
-
-  /** Reads the next varint encoded int. */
-  private int readUnsignedVarInt() throws IOException {
-    int value = 0;
-    int shift = 0;
-    int b;
-    do {
-      b = in.read();
-      value |= (b & 0x7F) << shift;
-      shift += 7;
-    } while ((b & 0x80) != 0);
-    return value;
-  }
-
-  /** Reads the next 4 byte little endian int. */
-  private int readIntLittleEndian() throws IOException {
-    int ch4 = in.read();
-    int ch3 = in.read();
-    int ch2 = in.read();
-    int ch1 = in.read();
-    return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
-  }
-
-  /** Reads the next byteWidth little endian int. */
-  private int readIntLittleEndianPaddedOnBitWidth() throws IOException {
-    switch (bytesWidth) {
-      case 0:
-        return 0;
-      case 1:
-        return in.read();
-      case 2:
-        {
-          int ch2 = in.read();
-          int ch1 = in.read();
-          return (ch1 << 8) + ch2;
-        }
-      case 3:
-        {
-          int ch3 = in.read();
-          int ch2 = in.read();
-          int ch1 = in.read();
-          return (ch1 << 16) + (ch2 << 8) + (ch3 << 0);
-        }
-      case 4:
-        {
-          return readIntLittleEndian();
-        }
-    }
-    throw new RuntimeException("Unreachable");
   }
 }

@@ -7,20 +7,33 @@ import static java.util.Objects.requireNonNull;
 import com.uber.pegasus.parquet.column.AbstractColumnReader;
 import com.uber.pegasus.parquet.column.ColumnReaderFactory;
 import com.uber.pegasus.parquet.file.AbstractParquetDataSource;
+import com.uber.pegasus.parquet.file.ParquetDataSource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.ValueVector;
+import org.apache.arrow.memory.RootAllocator;
+import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.VectorSchemaRoot;
+import org.apache.arrow.vector.types.pojo.Field;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.hadoop.metadata.BlockMetaData;
 import org.apache.parquet.hadoop.metadata.ColumnChunkMetaData;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
+import org.apache.parquet.hadoop.metadata.ParquetMetadata;
+import org.apache.parquet.io.ColumnIOFactory;
 import org.apache.parquet.io.MessageColumnIO;
 import org.apache.parquet.io.PrimitiveColumnIO;
+import org.apache.parquet.schema.MessageType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ParquetReader implements AutoCloseable {
   private static final int MAX_VECTOR_LENGTH = 1024;
+  private static final Logger LOG = LoggerFactory.getLogger(ParquetReader.class);
 
   protected final AbstractColumnReader[] columnReaders;
   private final BufferAllocator bufferAllocator;
@@ -32,6 +45,18 @@ public class ParquetReader implements AutoCloseable {
   private long currentPosInRowGroup;
   private int batchSize;
   private BlockMetaData currentRowGroupMetadata;
+
+  public ParquetReader(FileSystem fs, Path file, int fileSize) throws IOException {
+    ParquetMetadata metadata = new FooterReader().readMetadata(fs, file, fileSize);
+    this.bufferAllocator = new RootAllocator();
+    this.blocks = metadata.getBlocks();
+    this.dataSource = new ParquetDataSource(fs.open(file), file);
+    ColumnIOFactory factory = new ColumnIOFactory();
+    MessageType schema = metadata.getFileMetaData().getSchema();
+    LOG.info("Schema = {}", schema);
+    this.columns = factory.getColumnIO(schema).getLeaves();
+    this.columnReaders = new AbstractColumnReader[columns.size()];
+  }
 
   public ParquetReader(
       MessageColumnIO messageColumnIO,
@@ -57,11 +82,12 @@ public class ParquetReader implements AutoCloseable {
   }
 
   @SuppressWarnings("unchecked")
-  public List<ValueVector> readNext() throws IOException {
-    List<ValueVector> output = new ArrayList<>();
+  public VectorSchemaRoot readNext() throws IOException {
+    List<FieldVector> output = new ArrayList<>();
 
     for (int columnIdx = 0; columnIdx < columns.size(); columnIdx++) {
       ColumnDescriptor columnDescriptor = columns.get(columnIdx).getColumnDescriptor();
+      LOG.info("Reading column of type {}", columnDescriptor.getPrimitiveType());
       AbstractColumnReader columnReader = columnReaders[columnIdx];
       if (columnReader == null) {
         ColumnChunkMetaData metadata = getColumnChunkMetaData(columnDescriptor);
@@ -71,18 +97,19 @@ public class ParquetReader implements AutoCloseable {
         columnReaders[columnIdx] = columnReader;
       }
 
-      ValueVector valueVector =
-          ColumnReaderFactory.createValueVector(columnDescriptor, bufferAllocator);
-      valueVector.setInitialCapacity(batchSize);
-      valueVector.allocateNew();
-      columnReader.readBatch(batchSize, valueVector);
+      FieldVector v = ColumnReaderFactory.createFieldVector(columnDescriptor, bufferAllocator);
+      v.setInitialCapacity(batchSize);
+      v.allocateNew();
+      columnReader.readBatch(batchSize, v);
 
-      output.add(valueVector);
+      output.add(v);
     }
 
     currentPosInRowGroup += batchSize;
 
-    return output;
+    List<Field> fields = output.stream().map(FieldVector::getField).collect(Collectors.toList());
+
+    return new VectorSchemaRoot(fields, output, output.get(0).getValueCount());
   }
 
   @Override

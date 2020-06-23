@@ -184,6 +184,7 @@ public class ZooKeeperSession implements Membership, Closeable {
                   .aclProvider(defaultAclProvider)
                   .retryPolicy(new ExponentialBackoffRetry(1000, 3))
                   .build();
+          LOG.info("Assign new ZK session {}", zkSession);
           zkSession.start();
           recreatedSession = true;
         }
@@ -241,17 +242,20 @@ public class ZooKeeperSession implements Membership, Closeable {
         .addListener(
             (CuratorFramework zk, PathChildrenCacheEvent e) -> {
               LOG.debug("Received ZK event {}", e);
+              String workerId = getWorkerId(e.getData());
               synchronized (zkSession) {
                 // This session is no longer the active one, ignore the update.
                 if (zk != zkSession) {
-                  return;
+                  LOG.info("ZK session no longer active ({} vs {}). Return", zk, zkSession);
+                  // TODO: fix this
+                  // return;
                 }
                 switch (e.getType()) {
                   case CHILD_ADDED:
                     workers.add(getWorkerId(e.getData()));
                     break;
                   case CHILD_REMOVED:
-                    workers.remove(getWorkerId(e.getData()));
+                    workers.remove(workerId);
                     break;
                   case INITIALIZED:
                   default:
