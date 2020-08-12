@@ -2,7 +2,7 @@ package com.uber.pegasus.parquet.file;
 
 import static java.util.Objects.requireNonNull;
 
-import io.netty.buffer.ArrowBuf;
+import org.apache.arrow.memory.ArrowBuf;
 
 public abstract class AbstractParquetDataSource implements AutoCloseable {
   private final String path;

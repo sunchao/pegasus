@@ -1,7 +1,7 @@
 package com.uber.pegasus.parquet.value;
 
-import io.netty.buffer.ArrowBuf;
 import java.nio.ByteBuffer;
+import org.apache.arrow.memory.ArrowBuf;
 import org.apache.arrow.vector.FixedSizeBinaryVector;
 import org.apache.parquet.io.ParquetDecodingException;
 import org.apache.parquet.io.api.Binary;
