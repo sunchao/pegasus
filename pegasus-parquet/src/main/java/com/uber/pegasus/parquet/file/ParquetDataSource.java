@@ -1,9 +1,9 @@
 package com.uber.pegasus.parquet.file;
 
-import io.netty.buffer.ArrowBuf;
 import io.netty.util.internal.PlatformDependent;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import org.apache.arrow.memory.ArrowBuf;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 

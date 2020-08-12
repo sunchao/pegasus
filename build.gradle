@@ -17,7 +17,7 @@ allprojects {
         grpcVersion = "1.22.1"
         protobufVersion = "3.9.0"
         protocVersion = protobufVersion
-        arrowVersion = "0.14.1"
+        arrowVersion = "1.0.0"
         parquetVersion = "1.10.1"
         hiveVersion = "2.3.4"
         zookeeperVersion = "3.5.6"
@@ -109,6 +109,7 @@ subprojects {
         // Apache Arrow
         implementation "org.apache.arrow:arrow-vector:${arrowVersion}"
         implementation "org.apache.arrow:arrow-memory:${arrowVersion}"
+        runtimeOnly "org.apache.arrow:arrow-memory-netty:${arrowVersion}"
 
         testImplementation "junit:junit:4.12"
     }

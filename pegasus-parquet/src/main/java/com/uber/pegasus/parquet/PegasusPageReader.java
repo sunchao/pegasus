@@ -5,10 +5,10 @@ import static java.lang.Math.toIntExact;
 import static java.util.Objects.requireNonNull;
 
 import com.uber.pegasus.parquet.file.AbstractParquetDataSource;
-import io.netty.buffer.ArrowBuf;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import org.apache.arrow.memory.ArrowBuf;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.parquet.bytes.BytesInput;
 import org.apache.parquet.column.Encoding;
